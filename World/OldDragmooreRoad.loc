@@ -1,0 +1,34 @@
+##NAME:Old Dragmoore Road
+##PLAYLISTNAME:BleakWilderness
+##DESCRIPTION
+The northern road that links Fourhills with Dragmoore. Mostly ruined.
+
+A battle may occur here - hit B and press enter
+##BATTLESCREEN
+
+Hungry Lion (x2)
+===============================================
+AC 12
+HP 26 (4d10+4)
+Speed 50ft.
+-----------------------------------------------
+  STR     DEX     CON     INT     WIS     CHA  
+ 17(+3)  15(+2)  13(+1)   3(-3)  12(+1)  8(-1) 
+-----------------------------------------------
+Skills: Perception +3, Stealth +6              
+Passive perception 13                          
+Challenge 1 (200 XP)                           
+===============================================
+Keen Smell: Advantage on Wisdom (Peception) checks that rely on smell
+Pack Tactics: The lion has advantage on attack rolls against a creature if at least one of the lion's allies is within 5ft of the creature and isn't incapacitated
+Pounce: If the lion moves at least 20 feet straight toward a target right before hitting it with a claw attack, the target must succeed on a DC 13 strength saving throw or be knocked prone. If the target is prone the lion can take a bonus action to make one bite attack against it.
+Running leap: As part of its movement and after a 10 foot running the start, the lion can long jump up to 25 feet.
+===============================================
+Actions                                        
+-----------------------------------------------
+Bite: Melee weapon attack, +5 to hit, reach 5ft
+    One target. Hit: 7 (1d8+3) piercing damage
+Claw: Melee weapon attack, +5 to hit, reach 5ft
+    One target. Hit: 6 (1d6+3) slashing damage
+##END
+
