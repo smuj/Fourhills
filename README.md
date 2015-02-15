@@ -18,7 +18,7 @@ I haven't tested this much on Windows. There are three things that might make it
 2. If you want to use the automatic background music:
    - Make sure you have mpd installed
    - Install the Python library [musicpd](https://pypi.python.org/pypi/python-musicpd)
-   - Use a text editor to open the file fourhills.py and change the line `'MUSIC = False'` to `'MUSIC = True'`
+   - Use a text editor to open the file fourhills.py and change the line `MUSIC = False` to `MUSIC = True`
 3. Test whether it's working, using the example world, by going to a command line and typing `python3 fourhills.py`
 4. Create your own world according the 'Creating the World' section.
 5. If you're using the automatic background music controller, create mpd playlists for your locations. See the 'Playlists' section for more details.
