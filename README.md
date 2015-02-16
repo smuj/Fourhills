@@ -4,14 +4,14 @@ Fourhills gives a DM a text-based interface so that you can move through locatio
 
 The world is defined with a number of 'location' and 'character' files in a specially arranged directory structure. This is explained in the 'Creating the World' section.
 
+## Using the Program
+
 ### Windows Users
 I haven't tested this much on Windows. There are three things that might make it more difficult to get working:
 
-1. The location and character files use Unix-style line endings, so you'll need a program like [Notepad++](http://notepad-plus-plus.org/) to edit them.
+1. The location and character files use Unix-style line endings, so you'll need a program like [Notepad++](http://notepad-plus-plus.org/) to create and edit them.
 2. On my system, Python 3 didn't automatically make itself available via the command line (so number 3. from 'Getting it Running' didn't work). To get around this, you could try running it through IDLE.
 3. I've never used mpd (or they Python library musicpd) with Windows, so I'm not sure whether the background music feature will work.
-
-## Using the Program
 
 ### Getting it Running
 1. Make sure you have Python 3 installed
