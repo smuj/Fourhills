@@ -1,4 +1,6 @@
 import sys,os
+import re
+from stats import StatBlock
 
 MUSIC = False
 
@@ -145,7 +147,13 @@ def loadLocation(filename):
                 else:
                     locdescription = locdescription + line
             elif state == "GotBattlescreenTag":
-                if line.rstrip() == "##END":
+                monster_match = re.match(r"^##MONSTER: (\w*) ?x(\d*)$", line.rstrip())
+                if monster_match:
+                    monster_name = monster_match.group(1)
+                    monster_quantity = int(monster_match.group(2))
+                    s = StatBlock.from_file(os.path.join("Monsters", f"{monster_name}.yaml"))
+                    locbattlescreen += s.formatted_string(quantity=monster_quantity)
+                elif line.rstrip() == "##END":
                     break
                 else:
                     locbattlescreen = locbattlescreen + line
@@ -180,7 +188,7 @@ def LoadWorld(path = 'ExampleWorld',parent = None):
             LoadWorld(os.path.join(path,locFileName),parent = thisLoc)
     return parent
 
-World = LoadWorld(path="../FourhillsWorld")
+World = LoadWorld()
 
 #Set initial location
 glh = LocationHandler(World)
