@@ -151,7 +151,7 @@ def loadLocation(filename):
                     locbattlescreen = locbattlescreen + line
     return Location(locname,locdescription,locbattlescreen,locplaylistname)
 
-def LoadWorld(path = 'World',parent = None):
+def LoadWorld(path = 'ExampleWorld',parent = None):
     #if this is the first function call, we need to create the top-level world location
     if parent is None:
         parent = Location('World','Top-level world','None','BleakWilderness')
@@ -180,7 +180,7 @@ def LoadWorld(path = 'World',parent = None):
             LoadWorld(os.path.join(path,locFileName),parent = thisLoc)
     return parent
 
-World = LoadWorld()
+World = LoadWorld(path="../FourhillsWorld")
 
 #Set initial location
 glh = LocationHandler(World)

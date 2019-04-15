@@ -3,7 +3,7 @@
 ##DESCRIPTION
 A small village, inhabited mostly by humans. There's a square (200ft. by 150ft.), with a monument
 in the middle, and houses around the outside. The monument is of an old tiefling
-heroine, who defended the town against an invasion by humans, many (~100) years ago. It
+heroine, Damaiya, who defended the town against an invasion by humans, many (~100) years ago. It
 looks like her tail broke off and has been re-made recently.
 
 In the day, it's quite busy, with carts and such going about. It quietens down
@@ -28,7 +28,7 @@ A battle may occur here.
 
 Thug (x6)
 ===============================================
-AC 11 (leather armour)
+AC 11 (leather armor)
 HP 32 (5d8+10)
 Speed 30ft.
 -----------------------------------------------
@@ -42,7 +42,8 @@ Speaks Common
 Challenge 1/2 (100 XP)
 
 ===============================================
-Pack Tactics: Advantage on an attack roll against a creature if at least one of the thug's allies is within 5ft. of the creature and the ally isn't incapacitated.
+Pack Tactics: Advantage on an attack roll against a creature if at least one of the
+thug's allies is within 5ft. of the creature and the ally isn't incapacitated.
 ===============================================
 Actions
 -----------------------------------------------
