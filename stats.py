@@ -57,13 +57,18 @@ class StatBlock:
         """
         return math.floor((ability_score - 10) / 2)
 
-    def formatted_string(self, line_width: int = 80) -> str:
+    def formatted_string(
+        self, line_width: int = 80, quantity: Optional[int] = None
+    ) -> str:
         """Return a string representation of the stat block.
 
         Parameters
         ----------
         line_width : int
             The width of the output, in characters.
+        quantity : int or None
+            If an int, it will be shown as in the header as a quantity e.g. "Lion x3".
+            If None, just the name will be shown e.g. "Lion".
 
         Returns
         -------
@@ -128,7 +133,11 @@ class StatBlock:
         lines = list()
 
         # Header
-        lines.append(centre_pad(self.name.capitalize()))
+        if quantity:
+            header_text = f"{self.name.capitalize()} x{quantity:d}"
+        else:
+            header_text = self.name.capitalize()
+        lines.append(centre_pad(header_text))
         lines.append("=" * line_width)
 
         # Description
@@ -253,7 +262,7 @@ class StatBlock:
 
 def example():
     s = StatBlock.from_file("Monsters/lion.yaml")
-    print(s.formatted_string())
+    print(s.formatted_string(quantity=4))
 
 
 if __name__ == "__main__":
