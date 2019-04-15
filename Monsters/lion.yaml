@@ -6,8 +6,6 @@ ac: 12
 hp: 26 (4d10+4)
 speed: 50 ft. # burrow 0 ft., fly 0 ft.
 
-challenge: 1
-
 ability:
   STR: 17
   DEX: 15
@@ -15,8 +13,6 @@ ability:
   INT: 4
   WIS: 12
   CHA: 8
-
-passive_perception: 13
 
 # saving throws:
   # -
@@ -26,24 +22,26 @@ skills:
   perception: +3
   stealth: +6
 
-# vulnerabilities:
+# damage_vulnerabilities:
   # -
   # -
-# resistances:
+# damage_resistances:
   # -
   # -
-# immunities:
+# damage_immunities:
+  # -
+  # -
+# condition_immunities:
   # -
   # -
 
-# proficiencies:
-  # -
-  # -
-
-# special_senses:
-    # - blindsight
+senses:
+  passive_perception: 13
+  # blindsight: 30 ft.
 
 # languages:
+
+challenge: 1
 
 special_traits:
   keen smell: Advantage on Wisdom (Perception) checks that rely on smell.

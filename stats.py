@@ -1,7 +1,8 @@
 import math
+import yaml
+import textwrap
 from dataclasses import dataclass
 from typing import Optional
-import yaml
 
 
 class StatsException(RuntimeError):
@@ -25,14 +26,14 @@ class StatBlock:
     speed: str
     challenge: int
     ability: dict
-    passive_perception: int
+    senses: dict
     actions: list
     saving_throws: Optional[list] = None
     skills: Optional[dict] = None
-    vulnerabilities: Optional[list] = None
-    resistances: Optional[list] = None
-    immunities: Optional[list] = None
-    proficiencies: Optional[list] = None
+    damage_vulnerabilities: Optional[list] = None
+    damage_resistances: Optional[list] = None
+    damage_immunities: Optional[list] = None
+    condition_immunities: Optional[list] = None
     languages: Optional[list] = None
     special_traits: Optional[dict] = None
     reactions: Optional[list] = None
@@ -48,7 +49,7 @@ class StatBlock:
         ----------
         ability_score : int
             The ability score to calculate the modifier for.
-        
+
         Returns
         -------
         int
@@ -63,12 +64,52 @@ class StatBlock:
         ----------
         line_width : int
             The width of the output, in characters.
-        
+
         Returns
         -------
         str
             A string representation of the stat block.
         """
+
+        def format_indented_paragraph(text: str) -> list:
+            """Wrap a paragraph of text with approriate indentation on subsequent lines.
+
+            Parameters
+            ----------
+            text : str
+                The text to format.
+
+            Returns
+            -------
+            list of str
+                The wrapped lines of text.
+            """
+            return textwrap.wrap(
+                text, width=line_width, tabsize=4, subsequent_indent="    "
+            )
+
+        def format_list(title: str, items: list) -> list:
+            """Join items with commas to create a text list, wrapping when necessary.
+
+            Parameters
+            ----------
+            title : str
+                The title to place at the start of the list.
+            items : list of str
+                List of the items
+
+            Returns
+            -------
+            list of str
+                The wrapped lines of text.
+            """
+            # Create a text list of the items separated by commas
+            item_list = ", ".join(items)
+            # Add the title
+            full_text = f"{title}: {item_list}"
+            # Wrap the text
+            return format_indented_paragraph(full_text)
+
         # Each formatted ability stat needs 2 characters for the score, 3 for the
         # modifier (including sign), 2 for the brackets around the modifier, and
         # 2 for the minimum number of spaces on either side. There are 6 ability
@@ -76,7 +117,7 @@ class StatBlock:
         # width of at least 56.
         if line_width < 56:
             raise ValueError(
-                "Width must be at least 56 in order for there to be room for all scores."
+                "Width must be at least 56 for there to be room for all scores."
             )
 
         # Function to pad a string with spaces, centre-aligned
@@ -93,11 +134,10 @@ class StatBlock:
         # Description
         lines.append(f"{self.size.capitalize()} {self.creature_type}, {self.alignment}")
 
-        # AC, HP, speed and challenge
+        # AC, HP, speed
         lines.append(f"AC {self.ac}")
         lines.append(f"HP {self.hp}")
         lines.append(f"Speed {self.speed}")
-        lines.append(f"Challenge {self.challenge}")
 
         # Separator
         lines.append("-" * line_width)
@@ -125,6 +165,51 @@ class StatBlock:
         # Separator
         lines.append("-" * line_width)
 
+        # Skills
+        if self.skills:
+            skill_list = [f"{skill} {value:+d}" for skill, value in self.skills.items()]
+            lines.extend(format_list("Skills: ", skill_list))
+        # Saving throws
+        if self.saving_throws:
+            throws = [
+                f"{throw} {value:+d}" for throw, value in self.saving_throws.items()
+            ]
+            lines.extend(format_list("Saving throws: ", throws))
+        # Vulnerabilities
+        if self.damage_vulnerabilities:
+            lines.extend(
+                format_list("Damage vulnerabilities: ", self.damage_vulnerabilities)
+            )
+        # Resistances
+        if self.damage_resistances:
+            lines.extend(format_list("Damage resistances: ", self.damage_resistances))
+        # Immunities
+        if self.damage_immunities:
+            lines.extend(format_list("Damage immunities: ", self.damage_immunities))
+        if self.condition_immunities:
+            lines.extend(
+                format_list("Condition immunities: ", self.condition_immunities)
+            )
+        # Senses
+        if self.senses:
+            senses = [f"{sense} {value:+d}" for sense, value in self.senses.items()]
+            lines.extend(format_list("Senses: ", senses))
+        # Languages
+        if self.languages:
+            lines.extend(format_list("Languages: ", self.languages))
+        else:
+            lines.append("Languages: none")
+
+        # Challenge rating
+        lines.append(f"Challenge: {self.challenge}")
+
+        # Separator
+        lines.append("-" * line_width)
+
+        if self.special_traits:
+            for name, text in self.special_traits.items():
+                lines.extend(format_indented_paragraph(f"{name.capitalize()}: {text}"))
+
         return "\n".join(lines)
 
     @classmethod
@@ -147,4 +232,3 @@ class StatBlock:
 
 
 s = StatBlock.from_file("Monsters/lion.yaml")
-
