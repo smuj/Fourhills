@@ -187,9 +187,7 @@ class StatBlock:
         if self.damage_immunities:
             lines.extend(format_list("Damage immunities", self.damage_immunities))
         if self.condition_immunities:
-            lines.extend(
-                format_list("Condition immunities", self.condition_immunities)
-            )
+            lines.extend(format_list("Condition immunities", self.condition_immunities))
         # Senses
         if self.senses:
             senses = [f"{sense} {value:+d}" for sense, value in self.senses.items()]
@@ -250,8 +248,13 @@ class StatBlock:
             except yaml.YAMLError as exc:
                 raise StatsLoadException(f"Error loading from {filename}.") from exc
 
-            stats = StatBlock(**stat_dict)
-            print(stats.formatted_string(56))
+            return cls(**stat_dict)
 
 
-s = StatBlock.from_file("Monsters/lion.yaml")
+def example():
+    s = StatBlock.from_file("Monsters/lion.yaml")
+    print(s.formatted_string())
+
+
+if __name__ == "__main__":
+    example()
