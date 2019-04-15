@@ -36,7 +36,7 @@ skills:
   # -
 
 senses:
-  passive_perception: 13
+  passive perception: 13
   # blindsight: 30 ft.
 
 # languages:
@@ -56,19 +56,22 @@ special_traits:
     lion can long jump up to 25 ft.
 
 actions:
-  - bite:
-      type: melee
+  attacks:
+    bite:
+      type: melee weapon attack
       hit: +5
       reach: 5 ft.
       targets: one target
       hit: 7 (1d8+3)
       damage: piercing
-  - claw:
-      type: melee
+    claw:
+      type: melee weapon attack
       hit: +5
       reach: 5 ft.
       targets: one target
       hit: 6 (1d6+3)
       damage: slashing
+  #other:
+    #scare: One creature....
 
 # reactions:

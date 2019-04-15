@@ -168,47 +168,70 @@ class StatBlock:
         # Skills
         if self.skills:
             skill_list = [f"{skill} {value:+d}" for skill, value in self.skills.items()]
-            lines.extend(format_list("Skills: ", skill_list))
+            lines.extend(format_list("Skills", skill_list))
         # Saving throws
         if self.saving_throws:
             throws = [
                 f"{throw} {value:+d}" for throw, value in self.saving_throws.items()
             ]
-            lines.extend(format_list("Saving throws: ", throws))
+            lines.extend(format_list("Saving throws", throws))
         # Vulnerabilities
         if self.damage_vulnerabilities:
             lines.extend(
-                format_list("Damage vulnerabilities: ", self.damage_vulnerabilities)
+                format_list("Damage vulnerabilities", self.damage_vulnerabilities)
             )
         # Resistances
         if self.damage_resistances:
-            lines.extend(format_list("Damage resistances: ", self.damage_resistances))
+            lines.extend(format_list("Damage resistances", self.damage_resistances))
         # Immunities
         if self.damage_immunities:
-            lines.extend(format_list("Damage immunities: ", self.damage_immunities))
+            lines.extend(format_list("Damage immunities", self.damage_immunities))
         if self.condition_immunities:
             lines.extend(
-                format_list("Condition immunities: ", self.condition_immunities)
+                format_list("Condition immunities", self.condition_immunities)
             )
         # Senses
         if self.senses:
             senses = [f"{sense} {value:+d}" for sense, value in self.senses.items()]
-            lines.extend(format_list("Senses: ", senses))
+            lines.extend(format_list("Senses", senses))
         # Languages
-        if self.languages:
-            lines.extend(format_list("Languages: ", self.languages))
-        else:
-            lines.append("Languages: none")
+        lines.extend(format_list("Languages", self.languages or ["none"]))
 
         # Challenge rating
         lines.append(f"Challenge: {self.challenge}")
 
         # Separator
+        lines.append("")
+        lines.append(centre_pad("Special traits"))
         lines.append("-" * line_width)
 
         if self.special_traits:
             for name, text in self.special_traits.items():
                 lines.extend(format_indented_paragraph(f"{name.capitalize()}: {text}"))
+
+        # Separator and title
+        lines.append("")
+        lines.append(centre_pad("Actions"))
+        lines.append("-" * line_width)
+
+        # Attacks
+        for name, details in self.actions["attacks"].items():
+            details_formatted = (
+                f"{name.capitalize()}: {details['type']}, "
+                f"{details['hit']} to hit, reach {details['reach']},"
+                f"{details['targets']}. "
+                f"Hit: {details['hit']} {details['damage']} damage"
+            )
+            lines.extend(format_indented_paragraph(details_formatted))
+
+        # Other actions
+        if "other" in self.actions:
+            for name, text in self.actions["other"].items():
+                text = f"{name.capitalize()}: {text}"
+                lines.extend(format_indented_paragraph(text))
+
+        if self.reactions:
+            raise NotImplementedError("Printing reactions is not yet implemented")
 
         return "\n".join(lines)
 
