@@ -261,7 +261,7 @@ class StatBlock:
 
 
 def example():
-    s = StatBlock.from_file("Monsters/lion.yaml")
+    s = StatBlock.from_file("Monsters/example_monster.yaml")
     print(s.formatted_string(quantity=4))
 
 
