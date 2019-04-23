@@ -199,7 +199,7 @@ class StatBlock:
             lines.extend(format_list("Condition immunities", self.condition_immunities))
         # Senses
         if self.senses:
-            senses = [f"{sense} {value:+d}" for sense, value in self.senses.items()]
+            senses = [f"{sense} {value}" for sense, value in self.senses.items()]
             lines.extend(format_list("Senses", senses))
         # Languages
         lines.extend(format_list("Languages", self.languages or ["none"]))
@@ -227,8 +227,10 @@ class StatBlock:
                 f"{name.capitalize()}: {details['type']}, "
                 f"{details['hit']} to hit, reach {details['reach']},"
                 f"{details['targets']}. "
-                f"Hit: {details['hit']} {details['damage']} damage"
+                f"Hit: {details['hit']} {details['damage']} damage."
             )
+            if 'info' in details:
+                details_formatted += f" {details['info']}"
             lines.extend(format_indented_paragraph(details_formatted))
 
         # Other actions
