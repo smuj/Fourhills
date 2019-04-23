@@ -1,278 +1,167 @@
-import sys,os
+import sys
 import re
+import yaml
+import click
+from pathlib import Path
+from typing import Optional, List, Tuple
 from stats import StatBlock
 
-MUSIC = False
+BATTLE_FILENAME = "battle.yaml"
 
-if MUSIC:
-    import musicpd
 
-def cls():
-    os.system(['clear','cls'][os.name == 'nt'])
+class FourhillsError(RuntimeError):
+    pass
 
-TEXT_SEPARATOR_MAJOR = "\n===============================================\n"
-TEXT_SEPARATOR_MINOR = "\n-----------------------------------------------\n"
 
-CHARACTER_DESIGNATOR = "C"
-LOCATION_DESIGNATOR = "L"
-BATTLE_DESIGNATOR = "B"
-QUIT_DESIGNATOR = "Q"
+class FourhillsSettingStructureError(FourhillsError):
+    pass
 
-class Location:
-    """Represents a location or settlement"""
-    def __init__(self,name,description,battlescreen,playlistname):
-        #name and description of location
-        self.name = name
-        self.description = description
-        #what should be printed if a battle happens at this location
-        if battlescreen == "":
-            self.battlescreen = "No battle screen set up here"
-        else:
-            self.battlescreen = battlescreen
-        #the position of the music file in the playlist that should play when we're at this location
-        self.playlistname = playlistname
-        #will contain a list of characters
-        self.characters = []
-        #will contain a list of locations navigatable from here. The "parent" will end up in index 0.
-        self.children = []
-        #whether this location has had its parent set yet
-        self.parentSet = False
-    def AddCharacter(self,character):
-        #add a character to the end of the list
-        self.characters.append(character)
-    def AddChild(self,loc):
-        #add a child to the list, and set its parent to this location
-        self.children.append(loc)
-        loc.SetParent(self)
-    def SetParent(self,parent):
-        if self.parentSet:
-            raise Exception("Parent already set")
-        self.children.insert(0,parent)
-        self.parentSet = True
-    def ToString(self):
-        return self.name + TEXT_SEPARATOR_MAJOR + self.description
 
-class Character:
-    """Represents an character"""
-    def __init__(self,name,text):
-        self.name=name
-        self.text=text
-    def ToString(self):
-        return self.name + TEXT_SEPARATOR_MAJOR + self.text
+class FourhillsFileError(FourhillsError):
+    pass
 
-class LocationHandler:
-    """Allows naviation through settlements and locations"""
-    def __init__(self,startLoc):
-        self.loc = startLoc
-    def move(self,index):
-        self.loc = self.loc.children[index]
-    def ShowLocations(self):
-        print(self.loc.ToString()+TEXT_SEPARATOR_MINOR)
-        print("NPCs:")
-        NPCrange = range(len(self.loc.characters))
-        locrange = range(len(self.loc.children))
-        for j in NPCrange:
-            print(CHARACTER_DESIGNATOR,j,". ",self.loc.characters[j].name, sep='')
-        print("Options:")
-        for i in locrange:
-            print(LOCATION_DESIGNATOR,i,". ",self.loc.children[i].name, sep='')
-            
-        return (NPCrange,locrange)
 
-class SoundWrapper:
-    """Wrapper for musicpd"""
+class Setting:
+    """Represents the campaign setting directory tree."""
+
+    CONFIG_FILENAME = "fh_setting.yaml"
+    DIRNAMES = {"world": "world", "monsters": "monsters"}
+
     def __init__(self):
-        self.client = musicpd.MPDClient()
-        #stores current playlist name
-        self.currentPlaylistName = "None"
-    def setLoc(self,loc):
-        #don't do anything if the playlist is the same
-        if loc.playlistname != self.currentPlaylistName:
-            self.currentPlaylistName=loc.playlistname
-            self.client.connect('localhost',6600)
-            self.client.stop()
-            if loc.playlistname != "None":
-                self.client.clear()
-                self.client.load(loc.playlistname)
-                self.client.play()
-            self.client.close()
-            self.client.disconnect()
+        self.root = self.find_root()
 
-def loadCharacter(filename):
-    state = "Begin"
-    charname = "Not Defined"
-    chardescription = ""
-    with open(filename,'r') as f:
-        for line in f:
-            if state == "Begin":
-                lineparts = line.rstrip().split(":")
-                if lineparts[0]=="##NAME":
-                    charname = lineparts[1]
-                    state = "GotNameTag"
-            elif state =="GotNameTag":
-                if line.rstrip()=="##DESCRIPTION":
-                    state  = "GotDescriptionTag"
-            elif state =="GotDescriptionTag":
-                if line.rstrip() == "##END":
-                    break
-                else:
-                    chardescription = chardescription+line
-    return Character(charname,chardescription)
+    @staticmethod
+    def find_root() -> Optional[Path]:
+        """Find the root of the setting.
 
-#this could do with some validation, plus tidying up a bit
-def loadLocation(filename):
-    state = "Begin"
-    locname = "Not defined"
-    locplaylistname = "Not defined"
-    locdescription = ""
-    locbattlescreen = ""
-    with open(filename,'r') as f:
-        for line in f:
-            if state == "Begin":
-                lineparts = line.rstrip().split(":")
-                if lineparts[0]=="##NAME":
-                    locname = lineparts[1]
-                    state = "GotNameTag"
-            elif state == "GotNameTag":
-                lineparts = line.rstrip().split(":")
-                if lineparts[0]=="##PLAYLISTNAME":
-                    locplaylistname = lineparts[1]
-                    state = "GotPlaylistTag"
-            elif state == "GotPlaylistTag":
-                if line.rstrip() == "##DESCRIPTION":
-                    state = "GotDescriptionTag"
-            elif state == "GotDescriptionTag":
-                if line.rstrip() == "##BATTLESCREEN":
-                    state = "GotBattlescreenTag"
-                else:
-                    locdescription = locdescription + line
-            elif state == "GotBattlescreenTag":
-                monster_match = re.match(r"^##MONSTER: (\w*) ?x(\d*)$", line.rstrip())
-                if monster_match:
-                    monster_name = monster_match.group(1)
-                    monster_quantity = int(monster_match.group(2))
-                    s = StatBlock.from_file(os.path.join("Monsters", f"{monster_name}.yaml"))
-                    locbattlescreen += s.formatted_string(quantity=monster_quantity)
-                elif line.rstrip() == "##END":
-                    break
-                else:
-                    locbattlescreen = locbattlescreen + line
-    return Location(locname,locdescription,locbattlescreen,locplaylistname)
+        Notes
+        -----
+        Ascends the directory tree looking for `SETTING_CONFIG_FILENAME`.
 
-def LoadWorld(path = 'ExampleWorld',parent = None):
-    #if this is the first function call, we need to create the top-level world location
-    if parent is None:
-        parent = Location('World','Top-level world','None','BleakWilderness')
-        #the top-level world's parent should be itself
-        parent.SetParent(parent)
-    #get list of files and subdirectories
-    dirListing = os.listdir(path)
-    #extract a list of subdirectories
-    subDirs = [d for d in dirListing if os.path.isdir(os.path.join(path,d))]
-    #extract a list of files
-    files = [f for f in dirListing if os.path.isfile(os.path.join(path,f))]
-    #from the file list, extract lists of character files and location files
-    chaFiles = [f for f in files if os.path.splitext(f)[1].lower()=='.cha']
-    locFiles = [f for f in files if os.path.splitext(f)[1].lower()=='.loc']
-    #load the character files and add them to the parent
-    for characterFile in chaFiles:
-        parent.AddCharacter(loadCharacter(os.path.join(path,characterFile)))
-    for locationFile in locFiles:
-        thisLoc = loadLocation(os.path.join(path,locationFile))
-        #load location files and add them to the parent
-        parent.AddChild(thisLoc)
-        #get the name of the file without the extensions
-        locFileName = os.path.splitext(locationFile)[0]
-        #see if there is a subdirectory with the same name - if so, recurse into it
-        if locFileName in subDirs:
-            LoadWorld(os.path.join(path,locFileName),parent = thisLoc)
-    return parent
+        Returns
+        -------
+        pathlib.Path or None
+            The setting's root directory, or None if the file wasn't found
+        """
+        # Get the current working directory and resolve any symlinks etc.
+        current_dir = Path.cwd().resolve()
+        # While we can still ascend
+        while current_dir != current_dir.parent:
+            # See if the settings file exists
+            if (current_dir / Setting.CONFIG_FILENAME).is_file():
+                # Make sure the require directories are there
+                for directory_name in Setting.DIRNAMES.values():
+                    if not (current_dir / directory_name).is_dir():
+                        raise FourhillsSettingStructureError(
+                            f"Setting root does not contain {directory_name} directory."
+                        )
+                return current_dir
+            current_dir = current_dir.parent
+        # If the root directory wasn't found, return None
+        return None
 
-World = LoadWorld()
+    @property
+    def world_dir(self):
+        return self.root / self.DIRNAMES["world"]
 
-#Set initial location
-glh = LocationHandler(World)
+    @property
+    def monsters_dir(self):
+        return self.root / self.DIRNAMES["monsters"]
 
-if MUSIC:
-    #set up the playlist handler
-    gsw = SoundWrapper()
-    #start the first song playing
-    gsw.setLoc(glh.loc)
+    def monster_stats(self, monster_name: str) -> StatBlock:
+        # Suspected path of the monster stat config file
+        stat_file = self.monsters_dir / (monster_name + ".yaml")
+        if not stat_file.is_file():
+            raise FourhillsSettingStructureError(
+                f"Monster file {stat_file} does not exist."
+            )
+        return StatBlock.from_file(str(stat_file))
 
-#Main loop
-quit = False
-while quit == False:
-    #clear the screen
-    cls()
-    #display the NPCs and locations, and get the ranges of the possible commands
-    (NPCrange,locrange) = glh.ShowLocations()
 
-    #whether the user has yet entered a valid input
-    validInput = False
-    #used to store what action the user makes
-    actionType = ""
-    #used to store any numbers associated with the action
-    actionNumber = 0
+def load_battle_info(filename: str) -> List[Tuple[str, int]]:
+    """Load info about a battle from a file and return the details.
 
-    #keep going until the user enters valid input
-    #this would ideally be in a function or something
-    while validInput == False:
-        #get input from the user and convert to uppercase
-        cmd = input(">").upper()
-        #if there's nothing at all, just ask again
-        if len(cmd) == 0:
-            continue
-        #if it's length 1, its either battle or quit
-        elif len(cmd) == 1:
-            if cmd == BATTLE_DESIGNATOR:
-                actionType = "Battle"
-                validInput = True
-            elif cmd == QUIT_DESIGNATOR:
-                actionType = "Quit"
-                validInput = True
-            else:
-                print("Invalid command")
+    Parameters
+    ----------
+    filename : str
+        Filename of the YAML file to load battle info from.
+    
+    Returns
+    -------
+    list of (str, int)
+        List of monster names and the number of each
+    """
+    with open(filename) as f:
+        try:
+            battle_info = yaml.safe_load(f)
+        except yaml.YAMLError as exc:
+            raise FourhillsFileError(f"Error loading from {filename}.") from exc
+
+        # Stores the list of monster names and numbers
+        monster_info = []
+
+        # If there was a monsters section, load the monsters
+        if "monsters" in battle_info:
+            for monster_name_number in battle_info["monsters"]:
+                # See if it matches the expected format, extracting name and number
+                match = re.match(r"^(\w*)(?: ?x?(\d+))?$", monster_name_number)
+                if not match:
+                    raise FourhillsFileError("Error parsing monster in battle file")
+                # Get the name of the monster and how many there are. If there
+                # wasn't a number, assume 1 monster.
+                name = match[1]
+                number = match[2] or "1"
+                # Convert to int
+                try:
+                    number = int(number)
+                except ValueError as exc:
+                    raise FourhillsFileError(
+                        f"Error parsing number for monster {name}"
+                    ) from exc
+                # Add to the list
+                monster_info.append((name, number))
+
+        if "characters" in battle_info:
+            raise NotImplementedError("Loading of characters not yet implemented")
+
+        return monster_info
+
+
+def battle():
+
+    setting = Setting()
+
+    try:
+        battle_info = load_battle_info(BATTLE_FILENAME)
+    except FileNotFoundError:
+        raise FourhillsFileError(f"No '{BATTLE_FILENAME}' battle file found.")
+
+    stat_strings = [
+        setting.monster_stats(monster_name).formatted_string(
+            line_width=56, quantity=quantity
+        )
+        for monster_name, quantity in battle_info
+    ]
+    click.echo_via_pager("\n".join(stat_strings))
+
+
+def print_usage():
+    raise NotImplementedError
+
+
+def print_location():
+    raise NotImplementedError
+
+
+def main():
+    if len(sys.argv) > 1:
+        if sys.argv[1] in ["b", "battle"]:
+            battle()
         else:
-            #if it's longer than 1, try and grab the integer after the letter
-            try:
-                actionNumber = int(cmd[1:])
-                #if that worked, see whether it was a character or location
-                if cmd[0]==CHARACTER_DESIGNATOR:
-                    actionType = "Character"
-                    #check it's within range
-                    if actionNumber in NPCrange:
-                        validInput = True
-                    else:
-                        print("Invalid character number")
-                elif cmd[0] == LOCATION_DESIGNATOR:
-                    actionType = "Location"
-                    if actionNumber in locrange:
-                        validInput = True
-                    else:
-                        print("Invalid location number")
-                else:
-                    print("Invalid command")
-            except ValueError:
-                #if the integer didn't make sense, print and keep asking
-                print("Invalid number")
-
-    #we've got a valid command now
-    if actionType == "Quit":
-        print("Quitting")
-        quit = True
-    elif actionType == "Battle":
-        cls()
-        print("Battle",TEXT_SEPARATOR_MAJOR,glh.loc.battlescreen)
-        input("Press enter to exit battle")
-    elif actionType == "Character":
-        cls()
-        print("Character description",TEXT_SEPARATOR_MAJOR,glh.loc.characters[actionNumber].ToString())
-        input("Press enter to exit character description")
-    elif actionType == "Location":
-        glh.move(actionNumber)
-        if MUSIC:
-            gsw.setLoc(glh.loc)
+            print_usage()
     else:
-        print("Error - actionType was unknown value. Accidental modification to code?")
-        input("Press enter to continue")
+        print_location()
 
+
+if __name__ == "__main__":
+    main()
