@@ -57,15 +57,15 @@ actions:
       hit: +3
       reach: 5 ft.
       targets: one target
-      hit: 4 (1d4+2)
-      damage: piercing
+      damage: 4 (1d4+2)
+      damage type: piercing
     slam:
       type: melee weapon attack
       hit: +2
       reach: 5 ft.
       targets: one target
-      hit: 5 (1d6+2)
-      damage: bludgeoning
+      damage: 5 (1d6+2)
+      damage type: bludgeoning
   #other:
     #scare: One creature....
 

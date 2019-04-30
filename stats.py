@@ -1,3 +1,4 @@
+import sys
 import math
 import yaml
 import textwrap
@@ -37,6 +38,7 @@ class StatBlock:
     languages: Optional[list] = None
     special_traits: Optional[dict] = None
     reactions: Optional[list] = None
+    description: Optional[str] = None
 
     def __str__(self):
         return self.formatted_string(line_width=80)
@@ -225,9 +227,9 @@ class StatBlock:
         for name, details in self.actions["attacks"].items():
             details_formatted = (
                 f"{name.capitalize()}: {details['type']}, "
-                f"{details['hit']} to hit, reach {details['reach']},"
+                f"+{details['hit']} to hit, reach {details['reach']},"
                 f"{details['targets']}. "
-                f"Hit: {details['hit']} {details['damage']} damage."
+                f"Hit damage: {details['damage']} {details['damage type']} damage"
             )
             if 'info' in details:
                 details_formatted += f" {details['info']}"
@@ -241,6 +243,9 @@ class StatBlock:
 
         if self.reactions:
             raise NotImplementedError("Printing reactions is not yet implemented")
+
+        if self.description:
+            lines.extend(format_indented_paragraph(self.description))
 
         return "\n".join(lines)
 
@@ -263,7 +268,10 @@ class StatBlock:
 
 
 def example():
-    s = StatBlock.from_file("Monsters/example_monster.yaml")
+    if len(sys.argv) > 1:
+        s = StatBlock.from_file(sys.argv[1])
+    else:
+        s = StatBlock.from_file("Monsters/example_monster.yaml")
     print(s.formatted_string(quantity=4))
 
 
