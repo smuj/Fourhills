@@ -3,7 +3,7 @@ import math
 import yaml
 import textwrap
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, Dict, List
 
 
 class StatsException(RuntimeError):
@@ -22,22 +22,25 @@ class StatBlock:
     size: str
     creature_type: str
     alignment: str
-    ac: int
+    ac: str
     hp: str
     speed: str
-    challenge: int
-    ability: dict
-    senses: dict
-    actions: list
-    saving_throws: Optional[list] = None
-    skills: Optional[dict] = None
-    damage_vulnerabilities: Optional[list] = None
-    damage_resistances: Optional[list] = None
-    damage_immunities: Optional[list] = None
-    condition_immunities: Optional[list] = None
-    languages: Optional[list] = None
-    special_traits: Optional[dict] = None
-    reactions: Optional[list] = None
+    ability: Dict[str, int]
+    challenge: float
+    passive_perception: int
+    saving_throws: Optional[Dict[str, str]] = None
+    skills: Optional[Dict[str, str]] = None
+    damage_vulnerabilities: Optional[List[str]] = None
+    damage_resistances: Optional[List[str]] = None
+    damage_immunities: Optional[List[str]] = None
+    condition_immunities: Optional[List[str]] = None
+    special_senses: Optional[Dict[str, str]] = None
+    languages: Optional[List[str]] = None
+    special_traits: Optional[Dict[str, str]] = None
+    melee_attacks: Optional[Dict[str, Dict[str, str]]] = None
+    ranged_attacks: Optional[Dict[str, Dict[str, str]]] = None
+    multiattack: Optional[str] = None
+    other_actions: Optional[Dict[str, str]] = None
     description: Optional[str] = None
 
     def __str__(self):
@@ -117,6 +120,10 @@ class StatBlock:
             # Wrap the text
             return format_indented_paragraph(full_text)
 
+        # Function to pad a string with spaces, centre-aligned
+        def centre_pad(s, width=line_width):
+            return "{:^{width}}".format(s, width=width)
+
         # Each formatted ability stat needs 2 characters for the score, 3 for the
         # modifier (including sign), 2 for the brackets around the modifier, and
         # 2 for the minimum number of spaces on either side. There are 6 ability
@@ -126,10 +133,6 @@ class StatBlock:
             raise ValueError(
                 "Width must be at least 56 for there to be room for all scores."
             )
-
-        # Function to pad a string with spaces, centre-aligned
-        def centre_pad(s, width=line_width):
-            return "{:^{width}}".format(s, width=width)
 
         # List to hold the lines of the output
         lines = list()
@@ -142,7 +145,7 @@ class StatBlock:
         lines.append(centre_pad(header_text))
         lines.append("=" * line_width)
 
-        # Description
+        # Size, type and alignment
         lines.append(f"{self.size.capitalize()} {self.creature_type}, {self.alignment}")
 
         # AC, HP, speed
@@ -176,16 +179,14 @@ class StatBlock:
         # Separator
         lines.append("-" * line_width)
 
-        # Skills
-        if self.skills:
-            skill_list = [f"{skill} {value:+d}" for skill, value in self.skills.items()]
-            lines.extend(format_list("Skills", skill_list))
         # Saving throws
         if self.saving_throws:
-            throws = [
-                f"{throw} {value:+d}" for throw, value in self.saving_throws.items()
-            ]
+            throws = [f"{throw} {value}" for throw, value in self.saving_throws.items()]
             lines.extend(format_list("Saving throws", throws))
+        # Skills
+        if self.skills:
+            skill_list = [f"{skill} {value}" for skill, value in self.skills.items()]
+            lines.extend(format_list("Skills", skill_list))
         # Vulnerabilities
         if self.damage_vulnerabilities:
             lines.extend(
@@ -199,9 +200,11 @@ class StatBlock:
             lines.extend(format_list("Damage immunities", self.damage_immunities))
         if self.condition_immunities:
             lines.extend(format_list("Condition immunities", self.condition_immunities))
+        # Passive perception
+        lines.append(f"Passive perception: {self.passive_perception}")
         # Senses
-        if self.senses:
-            senses = [f"{sense} {value}" for sense, value in self.senses.items()]
+        if self.special_senses:
+            senses = [f"{sense} {value}" for sense, value in self.special_senses.items()]
             lines.extend(format_list("Senses", senses))
         # Languages
         lines.extend(format_list("Languages", self.languages or ["none"]))
@@ -223,26 +226,42 @@ class StatBlock:
         lines.append(centre_pad("Actions"))
         lines.append("-" * line_width)
 
-        # Attacks
-        for name, details in self.actions["attacks"].items():
-            details_formatted = (
-                f"{name.capitalize()}: {details['type']}, "
-                f"+{details['hit']} to hit, reach {details['reach']},"
-                f"{details['targets']}. "
-                f"Hit damage: {details['damage']} {details['damage type']} damage"
-            )
-            if 'info' in details:
-                details_formatted += f" {details['info']}"
-            lines.extend(format_indented_paragraph(details_formatted))
+        # Melee attacks
+        if self.melee_attacks:
+            for name, details in self.melee_attacks.items():
+                details_formatted = (
+                    f"{name.capitalize()}: melee weapon attack, "
+                    f"{details['hit']} to hit, reach {details['reach']}, "
+                    f"{details['targets']}. "
+                    f"Hit damage: {details['damage']}."
+                )
+                if 'info' in details:
+                    details_formatted += f" {details['info']}."
+                lines.extend(format_indented_paragraph(details_formatted))
+
+        # Ranged attacks
+        if self.ranged_attacks:
+            for name, details in self.ranged_attacks.items():
+                details_formatted = (
+                    f"{name.capitalize()}: ranged weapon attack, "
+                    f"{details['hit']} to hit, range {details['range']},"
+                    f"{details['targets']}. "
+                    f"Hit damage: {details['damage']}."
+                )
+                if 'info' in details:
+                    details_formatted += f" {details['info']}."
+                lines.extend(format_indented_paragraph(details_formatted))
+
+        if self.multiattack:
+            lines.extend(format_indented_paragraph(f"Multiattack: {self.multiattack}"))
 
         # Other actions
-        if "other" in self.actions:
-            for name, text in self.actions["other"].items():
-                text = f"{name.capitalize()}: {text}"
-                lines.extend(format_indented_paragraph(text))
+        if self.other_actions:
+            for name, text in self.other_actions.items():
+                action_formatted = f"{name.capitalize()}: {text}"
+                lines.extend(format_indented_paragraph(action_formatted))
 
-        if self.reactions:
-            raise NotImplementedError("Printing reactions is not yet implemented")
+        lines.append("")
 
         if self.description:
             lines.extend(format_indented_paragraph(self.description))
@@ -271,7 +290,7 @@ def example():
     if len(sys.argv) > 1:
         s = StatBlock.from_file(sys.argv[1])
     else:
-        s = StatBlock.from_file("Monsters/example_monster.yaml")
+        s = StatBlock.from_file("ExampleWorld/Monsters/example_monster.yaml")
     print(s.formatted_string(quantity=4))
 
 
