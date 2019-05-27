@@ -4,14 +4,7 @@ import yaml
 import textwrap
 from dataclasses import dataclass
 from typing import Optional, Dict, List
-
-
-class StatsException(RuntimeError):
-    pass
-
-
-class StatsLoadException(StatsException):
-    pass
+from fourhills_exceptions import FourhillsFileLoadError
 
 
 @dataclass
@@ -281,7 +274,7 @@ class StatBlock:
             try:
                 stat_dict = yaml.safe_load(f)
             except yaml.YAMLError as exc:
-                raise StatsLoadException(f"Error loading from {filename}.") from exc
+                raise FourhillsFileLoadError(f"Error loading from {filename}.") from exc
 
             return cls(**stat_dict)
 

@@ -5,20 +5,9 @@ import click
 from pathlib import Path
 from typing import Optional, List, Tuple
 from stats import StatBlock
+from fourhills_exceptions import FourhillsFileLoadError, FourhillsSettingStructureError
 
 BATTLE_FILENAME = "battle.yaml"
-
-
-class FourhillsError(RuntimeError):
-    pass
-
-
-class FourhillsSettingStructureError(FourhillsError):
-    pass
-
-
-class FourhillsFileError(FourhillsError):
-    pass
 
 
 class Setting:
@@ -85,7 +74,7 @@ def load_battle_info(filename: str) -> List[Tuple[str, int]]:
     ----------
     filename : str
         Filename of the YAML file to load battle info from.
-    
+
     Returns
     -------
     list of (str, int)
@@ -95,7 +84,7 @@ def load_battle_info(filename: str) -> List[Tuple[str, int]]:
         try:
             battle_info = yaml.safe_load(f)
         except yaml.YAMLError as exc:
-            raise FourhillsFileError(f"Error loading from {filename}.") from exc
+            raise FourhillsFileLoadError(f"Error loading from {filename}.") from exc
 
         # Stores the list of monster names and numbers
         monster_info = []
@@ -106,7 +95,7 @@ def load_battle_info(filename: str) -> List[Tuple[str, int]]:
                 # See if it matches the expected format, extracting name and number
                 match = re.match(r"^(\w*)(?: ?x?(\d+))?$", monster_name_number)
                 if not match:
-                    raise FourhillsFileError("Error parsing monster in battle file")
+                    raise FourhillsFileLoadError("Error parsing monster in battle file")
                 # Get the name of the monster and how many there are. If there
                 # wasn't a number, assume 1 monster.
                 name = match[1]
@@ -115,7 +104,7 @@ def load_battle_info(filename: str) -> List[Tuple[str, int]]:
                 try:
                     number = int(number)
                 except ValueError as exc:
-                    raise FourhillsFileError(
+                    raise FourhillsFileLoadError(
                         f"Error parsing number for monster {name}"
                     ) from exc
                 # Add to the list
@@ -134,7 +123,9 @@ def battle():
     try:
         battle_info = load_battle_info(BATTLE_FILENAME)
     except FileNotFoundError:
-        raise FourhillsFileError(f"No '{BATTLE_FILENAME}' battle file found.")
+        raise FourhillsSettingStructureError(
+            f"No '{BATTLE_FILENAME}' battle file found."
+        )
 
     stat_strings = [
         setting.monster_stats(monster_name).formatted_string(
