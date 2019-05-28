@@ -26,6 +26,7 @@ stats_base: example_monster
 # Dict, optional. The stats of the NPC, following the same structure as monster files.
 # If a `stats_base` is specified then entries in this dictionary will override matching
 # entries in the base.
-stats:
-  challenge: 2
-  languages: common
+# NOT YET IMPLEMENTED
+#stats:
+#  challenge: 2
+#  languages: common

@@ -87,8 +87,7 @@ class Npc:
                 stats = StatBlock.from_name(npc_dict["stats_base"], setting)
 
             if "stats" in npc_dict:
-                pass
-                #raise NotImplementedError
+                raise NotImplementedError
 
             npc = cls(
                 **{
