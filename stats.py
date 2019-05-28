@@ -1,10 +1,11 @@
 import sys
 import math
 import yaml
-import textwrap
 from dataclasses import dataclass
 from typing import Optional, Dict, List
-from fourhills_exceptions import FourhillsFileLoadError
+from setting import Setting
+from text_utils import format_indented_paragraph, format_list, centre_pad
+from fourhills_exceptions import FourhillsFileLoadError, FourhillsSettingStructureError
 
 
 @dataclass
@@ -56,7 +57,10 @@ class StatBlock:
         return math.floor((ability_score - 10) / 2)
 
     def formatted_string(
-        self, line_width: int = 80, quantity: Optional[int] = None
+        self,
+        line_width: int = 80,
+        include_header: Optional[bool] = True,
+        quantity: Optional[int] = None,
     ) -> str:
         """Return a string representation of the stat block.
 
@@ -64,6 +68,8 @@ class StatBlock:
         ----------
         line_width : int
             The width of the output, in characters.
+        include_header : bool
+            Whether to include the name and quantity header. Defaults to True.
         quantity : int or None
             If an int, it will be shown as in the header as a quantity e.g. "Lion x3".
             If None, just the name will be shown e.g. "Lion".
@@ -73,49 +79,6 @@ class StatBlock:
         str
             A string representation of the stat block.
         """
-
-        def format_indented_paragraph(text: str) -> list:
-            """Wrap a paragraph of text with approriate indentation on subsequent lines.
-
-            Parameters
-            ----------
-            text : str
-                The text to format.
-
-            Returns
-            -------
-            list of str
-                The wrapped lines of text.
-            """
-            return textwrap.wrap(
-                text, width=line_width, tabsize=4, subsequent_indent="    "
-            )
-
-        def format_list(title: str, items: list) -> list:
-            """Join items with commas to create a text list, wrapping when necessary.
-
-            Parameters
-            ----------
-            title : str
-                The title to place at the start of the list.
-            items : list of str
-                List of the items
-
-            Returns
-            -------
-            list of str
-                The wrapped lines of text.
-            """
-            # Create a text list of the items separated by commas
-            item_list = ", ".join(items)
-            # Add the title
-            full_text = f"{title}: {item_list}"
-            # Wrap the text
-            return format_indented_paragraph(full_text)
-
-        # Function to pad a string with spaces, centre-aligned
-        def centre_pad(s, width=line_width):
-            return "{:^{width}}".format(s, width=width)
 
         # Each formatted ability stat needs 2 characters for the score, 3 for the
         # modifier (including sign), 2 for the brackets around the modifier, and
@@ -131,12 +94,13 @@ class StatBlock:
         lines = list()
 
         # Header
-        if quantity:
-            header_text = f"{self.name.capitalize()} x{quantity:d}"
-        else:
-            header_text = self.name.capitalize()
-        lines.append(centre_pad(header_text))
-        lines.append("=" * line_width)
+        if include_header:
+            if quantity:
+                header_text = f"{self.name.capitalize()} x{quantity:d}"
+            else:
+                header_text = self.name.capitalize()
+            lines.append(centre_pad(header_text, line_width))
+            lines.append("=" * line_width)
 
         # Size, type and alignment
         lines.append(f"{self.size.capitalize()} {self.creature_type}, {self.alignment}")
@@ -166,8 +130,8 @@ class StatBlock:
             )
         # Join the names and scores into one line each, and centre and pad for the whole
         # line width, before appending to the list
-        lines.append(centre_pad("".join(ability_name_strings)))
-        lines.append(centre_pad("".join(ability_score_strings)))
+        lines.append(centre_pad("".join(ability_name_strings), line_width))
+        lines.append(centre_pad("".join(ability_score_strings), line_width))
 
         # Separator
         lines.append("-" * line_width)
@@ -175,48 +139,64 @@ class StatBlock:
         # Saving throws
         if self.saving_throws:
             throws = [f"{throw} {value}" for throw, value in self.saving_throws.items()]
-            lines.extend(format_list("Saving throws", throws))
+            lines.extend(format_list("Saving throws", throws, line_width))
         # Skills
         if self.skills:
             skill_list = [f"{skill} {value}" for skill, value in self.skills.items()]
-            lines.extend(format_list("Skills", skill_list))
+            lines.extend(format_list("Skills", skill_list, line_width))
         # Vulnerabilities
         if self.damage_vulnerabilities:
             lines.extend(
-                format_list("Damage vulnerabilities", self.damage_vulnerabilities)
+                format_list(
+                    "Damage vulnerabilities", self.damage_vulnerabilities, line_width
+                )
             )
         # Resistances
         if self.damage_resistances:
-            lines.extend(format_list("Damage resistances", self.damage_resistances))
+            lines.extend(
+                format_list("Damage resistances", self.damage_resistances, line_width)
+            )
         # Immunities
         if self.damage_immunities:
-            lines.extend(format_list("Damage immunities", self.damage_immunities))
+            lines.extend(
+                format_list("Damage immunities", self.damage_immunities, line_width)
+            )
         if self.condition_immunities:
-            lines.extend(format_list("Condition immunities", self.condition_immunities))
+            lines.extend(
+                format_list(
+                    "Condition immunities", self.condition_immunities, line_width
+                )
+            )
         # Passive perception
         lines.append(f"Passive perception: {self.passive_perception}")
         # Senses
         if self.special_senses:
-            senses = [f"{sense} {value}" for sense, value in self.special_senses.items()]
-            lines.extend(format_list("Senses", senses))
+            senses = [
+                f"{sense} {value}" for sense, value in self.special_senses.items()
+            ]
+            lines.extend(format_list("Senses", senses, line_width))
         # Languages
-        lines.extend(format_list("Languages", self.languages or ["none"]))
+        lines.extend(format_list("Languages", self.languages or ["none"], line_width))
 
         # Challenge rating
         lines.append(f"Challenge: {self.challenge}")
 
         # Separator
         lines.append("")
-        lines.append(centre_pad("Special traits"))
+        lines.append(centre_pad("Special traits", line_width))
         lines.append("-" * line_width)
 
         if self.special_traits:
             for name, text in self.special_traits.items():
-                lines.extend(format_indented_paragraph(f"{name.capitalize()}: {text}"))
+                lines.extend(
+                    format_indented_paragraph(
+                        f"{name.capitalize()}: {text}", line_width
+                    )
+                )
 
         # Separator and title
         lines.append("")
-        lines.append(centre_pad("Actions"))
+        lines.append(centre_pad("Actions", line_width))
         lines.append("-" * line_width)
 
         # Melee attacks
@@ -228,9 +208,9 @@ class StatBlock:
                     f"{details['targets']}. "
                     f"Hit damage: {details['damage']}."
                 )
-                if 'info' in details:
+                if "info" in details:
                     details_formatted += f" {details['info']}."
-                lines.extend(format_indented_paragraph(details_formatted))
+                lines.extend(format_indented_paragraph(details_formatted, line_width))
 
         # Ranged attacks
         if self.ranged_attacks:
@@ -241,28 +221,32 @@ class StatBlock:
                     f"{details['targets']}. "
                     f"Hit damage: {details['damage']}."
                 )
-                if 'info' in details:
+                if "info" in details:
                     details_formatted += f" {details['info']}."
-                lines.extend(format_indented_paragraph(details_formatted))
+                lines.extend(format_indented_paragraph(details_formatted, line_width))
 
         if self.multiattack:
-            lines.extend(format_indented_paragraph(f"Multiattack: {self.multiattack}"))
+            lines.extend(
+                format_indented_paragraph(
+                    f"Multiattack: {self.multiattack}", line_width
+                )
+            )
 
         # Other actions
         if self.other_actions:
             for name, text in self.other_actions.items():
                 action_formatted = f"{name.capitalize()}: {text}"
-                lines.extend(format_indented_paragraph(action_formatted))
+                lines.extend(format_indented_paragraph(action_formatted, line_width))
 
         lines.append("")
 
         if self.description:
-            lines.extend(format_indented_paragraph(self.description))
+            lines.extend(format_indented_paragraph(self.description, line_width))
 
         return "\n".join(lines)
 
     @classmethod
-    def from_file(cls, filename):
+    def from_file(cls, filename: str):
         """Create a StatBlock from a YAML file.
 
         Parameters
@@ -277,6 +261,27 @@ class StatBlock:
                 raise FourhillsFileLoadError(f"Error loading from {filename}.") from exc
 
             return cls(**stat_dict)
+
+    @classmethod
+    def from_name(cls, name: str, setting: Setting):
+        """Create a StatBlock by looking up a monster name in the setting.
+
+        Parameters
+        ----------
+        name: str
+            The name of the monster stat block. Must exactly match a filename in
+            the setting's `monsters` folder, excluding the extension.
+        setting: Setting
+            The Setting object; this is used to find the setting root and
+            subdirectories.
+        """
+        # Suspected path of the stat config file
+        stat_file = setting.monsters_dir / (name + ".yaml")
+        if not stat_file.is_file():
+            raise FourhillsSettingStructureError(
+                f"Stat file {stat_file} does not exist."
+            )
+        return cls.from_file(str(stat_file))
 
 
 def example():

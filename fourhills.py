@@ -2,72 +2,16 @@ import sys
 import re
 import yaml
 import click
-from pathlib import Path
 from typing import Optional, List, Tuple
+from setting import Setting
 from stats import StatBlock
+from npc import Npc
 from fourhills_exceptions import FourhillsFileLoadError, FourhillsSettingStructureError
 
 BATTLE_FILENAME = "battle.yaml"
 
 
-class Setting:
-    """Represents the campaign setting directory tree."""
-
-    CONFIG_FILENAME = "fh_setting.yaml"
-    DIRNAMES = {"world": "world", "monsters": "monsters"}
-
-    def __init__(self):
-        self.root = self.find_root()
-
-    @staticmethod
-    def find_root() -> Optional[Path]:
-        """Find the root of the setting.
-
-        Notes
-        -----
-        Ascends the directory tree looking for `SETTING_CONFIG_FILENAME`.
-
-        Returns
-        -------
-        pathlib.Path or None
-            The setting's root directory, or None if the file wasn't found
-        """
-        # Get the current working directory and resolve any symlinks etc.
-        current_dir = Path.cwd().resolve()
-        # While we can still ascend
-        while current_dir != current_dir.parent:
-            # See if the settings file exists
-            if (current_dir / Setting.CONFIG_FILENAME).is_file():
-                # Make sure the require directories are there
-                for directory_name in Setting.DIRNAMES.values():
-                    if not (current_dir / directory_name).is_dir():
-                        raise FourhillsSettingStructureError(
-                            f"Setting root does not contain {directory_name} directory."
-                        )
-                return current_dir
-            current_dir = current_dir.parent
-        # If the root directory wasn't found, return None
-        return None
-
-    @property
-    def world_dir(self):
-        return self.root / self.DIRNAMES["world"]
-
-    @property
-    def monsters_dir(self):
-        return self.root / self.DIRNAMES["monsters"]
-
-    def monster_stats(self, monster_name: str) -> StatBlock:
-        # Suspected path of the monster stat config file
-        stat_file = self.monsters_dir / (monster_name + ".yaml")
-        if not stat_file.is_file():
-            raise FourhillsSettingStructureError(
-                f"Monster file {stat_file} does not exist."
-            )
-        return StatBlock.from_file(str(stat_file))
-
-
-def load_battle_info(filename: str) -> List[Tuple[str, int]]:
+def load_battle_info(filename: str) -> Tuple[List[Tuple[str, int]], List[str]]:
     """Load info about a battle from a file and return the details.
 
     Parameters
@@ -110,10 +54,10 @@ def load_battle_info(filename: str) -> List[Tuple[str, int]]:
                 # Add to the list
                 monster_info.append((name, number))
 
-        if "characters" in battle_info:
-            raise NotImplementedError("Loading of characters not yet implemented")
+        # Stores the list of NPC names
+        npc_info = battle_info["npcs"] or []
 
-        return monster_info
+        return monster_info, npc_info
 
 
 def battle():
@@ -121,18 +65,24 @@ def battle():
     setting = Setting()
 
     try:
-        battle_info = load_battle_info(BATTLE_FILENAME)
+        monster_info, npc_info = load_battle_info(BATTLE_FILENAME)
     except FileNotFoundError:
         raise FourhillsSettingStructureError(
             f"No '{BATTLE_FILENAME}' battle file found."
         )
 
     stat_strings = [
-        setting.monster_stats(monster_name).formatted_string(
+        StatBlock.from_name(monster_name, setting).formatted_string(
             line_width=56, quantity=quantity
         )
-        for monster_name, quantity in battle_info
+        for monster_name, quantity in monster_info
     ]
+    stat_strings.extend(
+        [
+            Npc.from_name(npc_name, setting).formatted_stats_string(line_width=56)
+            for npc_name in npc_info
+        ]
+    )
     click.echo_via_pager("\n".join(stat_strings))
 
 

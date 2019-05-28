@@ -2,5 +2,5 @@ monsters:
   - example_monster x3
   - example_monster_2
 
-#characters:
-  # Not yet implemented
+npcs:
+  - example_npc
