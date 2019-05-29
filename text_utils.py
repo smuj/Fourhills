@@ -1,4 +1,5 @@
 import textwrap
+from typing import List
 
 
 def format_indented_paragraph(text: str, line_width: int) -> list:
@@ -16,9 +17,31 @@ def format_indented_paragraph(text: str, line_width: int) -> list:
     list of str
         The wrapped lines of text.
     """
-    return textwrap.wrap(
-        text, width=line_width, tabsize=4, subsequent_indent="    "
-    )
+    return textwrap.wrap(text, width=line_width, tabsize=4, subsequent_indent="    ")
+
+
+def wrap_lines_paragraph(lines: List[str], line_width: int) -> List[str]:
+    """Wrap any lines which are too long, indenting subsequent lines.
+
+    Parameters
+    ----------
+    lines : list of str
+        The lines of strings to wrap.
+    line_width : int
+        The maximum width a line can be.
+
+    Returns
+    -------
+    list of str
+        The wrapped lines of text.
+    """
+    output_lines = list()
+    for line in lines:
+        output_lines.extend(
+            textwrap.wrap(line, width=line_width, tabsize=4, subsequent_indent="    ")
+        )
+
+    return output_lines
 
 
 def format_list(title: str, items: list, line_width: int) -> list:

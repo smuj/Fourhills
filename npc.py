@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from typing import Optional, List, Dict
 from setting import Setting
 from stats import StatBlock
-from text_utils import centre_pad
+from text_utils import centre_pad, wrap_lines_paragraph
 from fourhills_exceptions import FourhillsFileLoadError, FourhillsSettingStructureError
 
 
@@ -37,7 +37,10 @@ class Npc:
             A summary of the NPC block as a list of lines.
         """
         lines = []
-        lines.append(centre_pad(self.name, line_width))
+        if self.deceased:
+            lines.append(centre_pad(f"{self.name} (deceased)", line_width))
+        else:
+            lines.append(centre_pad(self.name, line_width))
         lines.append("=" * line_width)
 
         if self.stats:
@@ -47,10 +50,10 @@ class Npc:
                 f"({self.stats.size.capitalize()} {self.stats.creature_type})"
             )
 
-        return lines
+        return wrap_lines_paragraph(lines, line_width)
 
     def battle_info(self, line_width: int = 80) -> List[str]:
-        """Return a string representation of the NPC's stats.
+        """Return a list of lines detailing the NPC's stats.
 
         Parameters
         ----------
@@ -66,6 +69,33 @@ class Npc:
             return self.stats.battle_info(line_width)
         else:
             return ["This NPC has no stats defined"]
+
+    def character_info(self, line_width: int = 80) -> List[str]:
+        """Return a list of lines describing the NPC.
+
+        Parameters
+        ----------
+        line_width : int
+            The width of the output, in characters.
+
+        Returns
+        -------
+        list of str
+            A representation of the NPC as a list of lines.
+        """
+        lines = []
+        lines.append(f"Appearance: {self.appearance}")
+        if self.accent:
+            lines.append(f"Accent: {self.accent}")
+        lines.append((self.temperament or "") + (" " + self.background or ""))
+
+        if self.phrases:
+            lines.append("")
+            lines.append("Phrases:")
+            for phrase in self.phrases:
+                lines.append(f"- {phrase}")
+
+        return wrap_lines_paragraph(lines, line_width)
 
     @classmethod
     def from_name(cls, name: str, setting: Setting):

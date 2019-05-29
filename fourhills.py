@@ -7,6 +7,7 @@ from setting import Setting
 from stats import StatBlock
 from npc import Npc
 from fourhills_exceptions import FourhillsFileLoadError
+from text_utils import format_list
 
 SCENE_FILENAME = "battle.yaml"
 
@@ -69,26 +70,45 @@ class Scene:
             return cls(monster_info, npc_info)
 
     def display_battle(self):
-        stat_strings = list()
+        """Display statistsics for battle."""
+        lines = list()
 
         for monster_name, quantity in self.monster_names_quantities:
             monster = StatBlock.from_name(monster_name, self.setting)
-            stat_strings.extend(monster.summary_info(self.setting.pane_width, quantity))
-            stat_strings.extend(monster.battle_info(self.setting.pane_width))
+            lines.extend(monster.summary_info(self.setting.pane_width, quantity))
+            lines.extend(monster.battle_info(self.setting.pane_width))
 
         for npc_name in self.npc_names:
             npc = Npc.from_name(npc_name, self.setting)
-            stat_strings.extend(npc.summary_info(self.setting.pane_width))
-            stat_strings.extend(npc.battle_info(self.setting.pane_width))
+            lines.extend(npc.summary_info(self.setting.pane_width))
+            lines.extend(npc.battle_info(self.setting.pane_width))
 
-        click.echo_via_pager("\n".join(stat_strings))
+        click.echo_via_pager("\n".join(lines))
 
+    def display_npcs(self):
+        """Display information about NPCs."""
+        lines = list()
+
+        for npc_name in self.npc_names:
+            npc = Npc.from_name(npc_name, self.setting)
+            lines.extend(npc.summary_info(self.setting.pane_width))
+            lines.extend(npc.character_info(self.setting.pane_width))
+
+        click.echo_via_pager("\n".join(lines))
+
+    def display_scene(self):
+        """Display information about location."""
+        lines = list()
+        monster_strings = [
+            f"{name} x{quantity}" if quantity != 1 else name
+            for name, quantity in self.monster_names_quantities
+        ]
+        lines.extend(format_list("Monsters", monster_strings, self.setting.pane_width))
+        lines.extend(format_list("NPCs", self.npc_names, self.setting.pane_width))
+
+        click.echo_via_pager("\n".join(lines))
 
 def print_usage():
-    raise NotImplementedError
-
-
-def print_location():
     raise NotImplementedError
 
 
@@ -97,10 +117,14 @@ def main():
     if len(sys.argv) > 1:
         if sys.argv[1] in ["b", "battle"]:
             scene.display_battle()
+        elif sys.argv[1] in ["n", "npc", "npcs"]:
+            scene.display_npcs()
+        elif sys.argv[1] in ["s", "scene"]:
+            scene.display_scene()
         else:
             print_usage()
     else:
-        print_location()
+        scene.display_scene()
 
 
 if __name__ == "__main__":
