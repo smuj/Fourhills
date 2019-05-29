@@ -1,4 +1,4 @@
-# String, required. The name of the NPC.
+# String, required. The name of the NPC, capitalised as necessary.
 name: Mr. B. Smith
 # String, required. The physical appearance of the NPC.
 appearance: Tall, well-built. Wears a blacksmith's apron.

@@ -1,8 +1,8 @@
 # This is an example monster, showing the layout of the monster file. Its stats
 # don't necessarily make sense in the context of a game.
 
-# String, no capitalisation necessary.
-name: example_monster
+# String, with appropriate capitalisation
+name: Example monster
 # String: tiny, small, medium, large, huge or gargantuan
 size: small
 # String describing type, with optional tag in brackets. No capitalisation necessary.

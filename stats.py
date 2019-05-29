@@ -38,7 +38,7 @@ class StatBlock:
     description: Optional[str] = None
 
     def __str__(self):
-        return self.formatted_string(line_width=80)
+        return self.summary_info(line_width=80)
 
     @staticmethod
     def calculate_ability_modifier(ability_score: int) -> int:
@@ -56,28 +56,49 @@ class StatBlock:
         """
         return math.floor((ability_score - 10) / 2)
 
-    def formatted_string(
-        self,
-        line_width: int = 80,
-        include_header: Optional[bool] = True,
-        quantity: Optional[int] = None,
-    ) -> str:
-        """Return a string representation of the stat block.
+    def summary_info(
+        self, line_width: int = 80, quantity: Optional[int] = None
+    ) -> List[str]:
+        """Return a list of lines summarising the stat block.
 
         Parameters
         ----------
         line_width : int
             The width of the output, in characters.
-        include_header : bool
-            Whether to include the name and quantity header. Defaults to True.
         quantity : int or None
             If an int, it will be shown as in the header as a quantity e.g. "Lion x3".
             If None, just the name will be shown e.g. "Lion".
 
         Returns
         -------
-        str
-            A string representation of the stat block.
+        list of str
+            A summary of the stat block as a list of lines.
+        """
+        lines = []
+        if quantity:
+            header_text = f"{self.name} x{quantity:d}"
+        else:
+            header_text = self.name
+        lines.append(centre_pad(header_text, line_width))
+        lines.append("=" * line_width)
+
+        # Size, type and alignment
+        lines.append(f"{self.size.capitalize()} {self.creature_type}, {self.alignment}")
+
+        return lines
+
+    def battle_info(self, line_width: int = 80) -> List[str]:
+        """Return the battle info for the stat block as a list of lines.
+
+        Parameters
+        ----------
+        line_width : int
+            The width of the output, in characters.
+
+        Returns
+        -------
+        list of str
+            A representation of the stat block as a list of lines.
         """
 
         # Each formatted ability stat needs 2 characters for the score, 3 for the
@@ -90,20 +111,8 @@ class StatBlock:
                 "Width must be at least 56 for there to be room for all scores."
             )
 
-        # List to hold the lines of the output
+        # List to hold the lines of the output.
         lines = list()
-
-        # Header
-        if include_header:
-            if quantity:
-                header_text = f"{self.name.capitalize()} x{quantity:d}"
-            else:
-                header_text = self.name.capitalize()
-            lines.append(centre_pad(header_text, line_width))
-            lines.append("=" * line_width)
-
-        # Size, type and alignment
-        lines.append(f"{self.size.capitalize()} {self.creature_type}, {self.alignment}")
 
         # AC, HP, speed
         lines.append(f"AC {self.ac}")
@@ -243,7 +252,7 @@ class StatBlock:
         if self.description:
             lines.extend(format_indented_paragraph(self.description, line_width))
 
-        return "\n".join(lines)
+        return lines
 
     @classmethod
     def from_file(cls, filename: str):

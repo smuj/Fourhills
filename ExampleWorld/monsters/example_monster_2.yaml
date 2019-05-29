@@ -1,7 +1,7 @@
 # This is an example monster, showing the layout of the monster file. Its stats
 # don't necessarily make sense in the context of a game.
 
-name: example_monster2
+name: Example monster 2
 size: large
 creature_type: beast
 alignment: neutral good

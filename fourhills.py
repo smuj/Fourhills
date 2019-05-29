@@ -71,18 +71,18 @@ def battle():
             f"No '{BATTLE_FILENAME}' battle file found."
         )
 
-    stat_strings = [
-        StatBlock.from_name(monster_name, setting).formatted_string(
-            line_width=56, quantity=quantity
-        )
-        for monster_name, quantity in monster_info
-    ]
-    stat_strings.extend(
-        [
-            Npc.from_name(npc_name, setting).formatted_stats_string(line_width=56)
-            for npc_name in npc_info
-        ]
-    )
+    stat_strings = list()
+
+    for monster_name, quantity in monster_info:
+        monster = StatBlock.from_name(monster_name, setting)
+        stat_strings.extend(monster.summary_info(setting.pane_width, quantity))
+        stat_strings.extend(monster.battle_info(setting.pane_width))
+
+    for npc_name in npc_info:
+        npc = Npc.from_name(npc_name, setting)
+        stat_strings.extend(npc.summary_info(setting.pane_width))
+        stat_strings.extend(npc.battle_info(setting.pane_width))
+
     click.echo_via_pager("\n".join(stat_strings))
 
 

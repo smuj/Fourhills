@@ -21,10 +21,10 @@ class Npc:
     stats: Optional[Dict] = None
 
     def __str__(self):
-        return self.formatted_string(line_width=80)
+        return self.summary_info(line_width=80)
 
-    def formatted_string(self, line_width: int = 80) -> str:
-        """Return a string representation of the NPC.
+    def summary_info(self, line_width: int = 80) -> List[str]:
+        """Return a list of lines summarising the NPC.
 
         Parameters
         ----------
@@ -33,12 +33,23 @@ class Npc:
 
         Returns
         -------
-        str
-            A string representation of the NPC.
+        list of str
+            A summary of the NPC block as a list of lines.
         """
-        raise NotImplementedError
+        lines = []
+        lines.append(centre_pad(self.name, line_width))
+        lines.append("=" * line_width)
 
-    def formatted_stats_string(self, line_width: int = 80) -> str:
+        if self.stats:
+            # Size, type and alignment
+            lines.append(
+                f"{self.stats.alignment.capitalize()} {self.stats.name} "
+                f"({self.stats.size.capitalize()} {self.stats.creature_type})"
+            )
+
+        return lines
+
+    def battle_info(self, line_width: int = 80) -> List[str]:
         """Return a string representation of the NPC's stats.
 
         Parameters
@@ -48,17 +59,13 @@ class Npc:
 
         Returns
         -------
-        str
-            A string representation of the NPC's stats.
+        list of str
+            A representation of the NPC's stats as a list of lines.
         """
-        lines = []
-        lines.append(centre_pad(self.name.capitalize(), line_width))
-        lines.append("=" * line_width)
         if self.stats:
-            lines.append(self.stats.formatted_string(line_width, include_header=False))
+            return self.stats.battle_info(line_width)
         else:
-            lines.append("This NPC has no stats defined")
-        return "\n".join(lines)
+            return ["This NPC has no stats defined"]
 
     @classmethod
     def from_name(cls, name: str, setting: Setting):

@@ -11,6 +11,7 @@ class Setting:
 
     def __init__(self):
         self.root = self.find_root()
+        self.pane_width = 56
 
     @staticmethod
     def find_root() -> Optional[Path]:
