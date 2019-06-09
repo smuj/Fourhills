@@ -65,7 +65,7 @@ class Scene:
                     monster_info.append((name, number))
 
             # Stores the list of NPC names
-            npc_info = scene_info["npcs"] or []
+            npc_info = scene_info["npcs"] if "npcs" in scene_info else []
 
             return cls(monster_info, npc_info)
 
