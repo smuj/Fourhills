@@ -7,7 +7,7 @@ from setting import Setting
 from stats import StatBlock
 from npc import Npc
 from fourhills_exceptions import FourhillsFileLoadError
-from text_utils import format_list
+from text_utils import format_list, display_panes
 
 SCENE_FILENAME = "battle.yaml"
 
@@ -71,19 +71,23 @@ class Scene:
 
     def display_battle(self):
         """Display statistsics for battle."""
-        lines = list()
+        panes = list()
 
         for monster_name, quantity in self.monster_names_quantities:
             monster = StatBlock.from_name(monster_name, self.setting)
-            lines.extend(monster.summary_info(self.setting.pane_width, quantity))
-            lines.extend(monster.battle_info(self.setting.pane_width))
+            panes.append(
+                monster.summary_info(self.setting.pane_width, quantity)
+                + monster.battle_info(self.setting.pane_width)
+            )
 
         for npc_name in self.npc_names:
             npc = Npc.from_name(npc_name, self.setting)
-            lines.extend(npc.summary_info(self.setting.pane_width))
-            lines.extend(npc.battle_info(self.setting.pane_width))
+            panes.append(
+                npc.summary_info(self.setting.pane_width)
+                + npc.battle_info(self.setting.pane_width)
+            )
 
-        click.echo_via_pager("\n".join(lines))
+        display_panes(panes, self.setting.panes, self.setting.column_width)
 
     def display_npcs(self):
         """Display information about NPCs."""
