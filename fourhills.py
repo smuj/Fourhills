@@ -108,12 +108,17 @@ class Scene:
 
         click.echo_via_pager("\n".join(lines))
 
+
 def print_usage():
     raise NotImplementedError
 
 
 def main():
-    scene = Scene.from_file(SCENE_FILENAME)
+    try:
+        scene = Scene.from_file(SCENE_FILENAME)
+    except FileNotFoundError:
+        print("No scene file at this location")
+        sys.exit()
     if len(sys.argv) > 1:
         if sys.argv[1] in ["b", "battle"]:
             scene.display_battle()
