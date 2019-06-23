@@ -122,6 +122,8 @@ class Npc:
 
             if "stats_base" in npc_dict:
                 stats = StatBlock.from_name(npc_dict["stats_base"], setting)
+            else:
+                stats = None
 
             if "stats" in npc_dict:
                 raise NotImplementedError
