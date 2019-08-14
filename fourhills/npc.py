@@ -1,10 +1,11 @@
 import yaml
 from dataclasses import dataclass
 from typing import Optional, List, Dict
-from setting import Setting
-from stats import StatBlock
-from text_utils import centre_pad, wrap_lines_paragraph
-from fourhills_exceptions import FourhillsFileLoadError, FourhillsSettingStructureError
+from fourhills import Setting, StatBlock
+from fourhills.exceptions import (
+    FourhillsFileLoadError, FourhillsSettingStructureError
+)
+from fourhills.text_utils import centre_pad, wrap_lines_paragraph
 
 
 @dataclass

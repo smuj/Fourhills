@@ -1,5 +1,5 @@
 
-class FourhillsError(RuntimeError):
+class FourhillsError(Exception):
     pass
 
 
@@ -9,4 +9,3 @@ class FourhillsSettingStructureError(FourhillsError):
 
 class FourhillsFileLoadError(FourhillsError):
     pass
-
