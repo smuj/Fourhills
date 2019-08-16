@@ -12,6 +12,7 @@ setuptools.setup(
         "click",
         "dataclasses",
         "pyyaml",
+        "pyside2",
     ],
     entry_points={
         'console_scripts': [
