@@ -1,3 +1,5 @@
+"""Main window for Fourhills GUI"""
+
 from PySide2 import QtWidgets
 from PySide2.QtWidgets import QApplication, QMainWindow, QWidget
 
@@ -39,6 +41,16 @@ class MainWindow(QMainWindow):
         # Final window setup
         self.setCentralWidget(self.centralwidget)
         self.centralwidget.setLayout(self.root_layout)
+
+        # Set up keyboard shortcuts
+        self.open_shortcut = QtWidgets.QShortcut("Ctrl+O", self.centralwidget, self.handle_open)
+        self.save_shortcut = QtWidgets.QShortcut("Ctrl+S", self.centralwidget, self.handle_save)
+
+    def handle_open(self,):
+        self.notes_pane.load_notes()
+
+    def handle_save(self):
+        self.notes_pane.save_notes()
 
 
 def main():
