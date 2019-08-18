@@ -10,4 +10,6 @@ class LocationPane(QtWidgets.QWidget):
         super().__init__(**kwargs)
         self.layout = QtWidgets.QHBoxLayout()
 
+        self.layout.addWidget(QtWidgets.QLabel("LocationPane Placeholder"))
+
         self.setLayout(self.layout)

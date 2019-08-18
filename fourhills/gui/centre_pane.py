@@ -13,4 +13,6 @@ class CentrePane(QtWidgets.QWidget):
         super().__init__(**kwargs)
         self.layout = QtWidgets.QHBoxLayout()
 
+        self.layout.addWidget(QtWidgets.QLabel("CentrePane Placeholder"))
+
         self.setLayout(self.layout)

@@ -1,6 +1,7 @@
 from PySide2 import QtWidgets
 from PySide2.QtWidgets import QApplication, QMainWindow, QWidget
 
+from fourhills.gui.content_pane import ContentPane
 from fourhills.gui.notes_pane import NotesPane
 
 
@@ -27,13 +28,13 @@ class MainWindow(QMainWindow):
         self.root_layout = QtWidgets.QVBoxLayout(self.root_layout_widget)
         self.root_layout.setObjectName("root_layout")
 
-        # Content placeholder
-        self.content_lbl = QtWidgets.QLabel("Content Placeholder", parent=self)
-        self.root_layout.addWidget(self.content_lbl)
+        # Content pane with stretch 2, so it is 2x height of notes pane
+        self.content_pane = ContentPane()
+        self.root_layout.addWidget(self.content_pane, 2)
 
         # Notes pane
         self.notes_pane = NotesPane(parent=self)
-        self.root_layout.addWidget(self.notes_pane)
+        self.root_layout.addWidget(self.notes_pane, 1)
 
         # Final window setup
         self.setCentralWidget(self.centralwidget)
