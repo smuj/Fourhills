@@ -11,8 +11,12 @@ class CentrePane(QtWidgets.QWidget):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.layout = QtWidgets.QHBoxLayout()
+        self.layout = QtWidgets.QVBoxLayout()
 
-        self.layout.addWidget(QtWidgets.QLabel("CentrePane Placeholder"))
+        # Centre pane is really just a large, non-editable text box
+        self.layout.addWidget(QtWidgets.QLabel("Information:"))
+        self.centre_text = QtWidgets.QTextEdit()
+        self.centre_text.setReadOnly(True)
+        self.layout.addWidget(self.centre_text)
 
         self.setLayout(self.layout)

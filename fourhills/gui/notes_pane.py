@@ -8,6 +8,8 @@ class NotesPane(QtWidgets.QWidget):
         super().__init__(**kwargs)
         self.layout = QtWidgets.QVBoxLayout()
 
+        self.layout.addWidget(QtWidgets.QLabel("DM Notes:"))
+
         # Add file information
         self.file_layout = QtWidgets.QHBoxLayout()
         self.load_btn = QtWidgets.QPushButton("Load File")

@@ -15,7 +15,7 @@ class ContentPane(QtWidgets.QWidget):
         # Content pane is initialised with location pane and centre pane
         self.location_pane = LocationPane()
         self.centre_pane = CentrePane()
-        self.layout.addWidget(self.location_pane)
-        self.layout.addWidget(self.centre_pane)
+        self.layout.addWidget(self.location_pane, 1)
+        self.layout.addWidget(self.centre_pane, 2)
 
         self.setLayout(self.layout)
