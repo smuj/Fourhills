@@ -45,12 +45,36 @@ class MainWindow(QMainWindow):
         # Set up keyboard shortcuts
         self.open_shortcut = QtWidgets.QShortcut("Ctrl+O", self.centralwidget, self.handle_open)
         self.save_shortcut = QtWidgets.QShortcut("Ctrl+S", self.centralwidget, self.handle_save)
+        self.monster_shortcut = QtWidgets.QShortcut(
+            "m",
+            self.centralwidget,
+            self.handle_monster_open
+        )
+        self.npc_shortcut = QtWidgets.QShortcut(
+            "n",
+            self.centralwidget,
+            self.handle_npc_open
+        )
+        self.clear_shortcut = QtWidgets.QShortcut(
+            "c",
+            self.centralwidget,
+            self.handle_clear_panes
+        )
 
     def handle_open(self,):
         self.notes_pane.load_notes()
 
     def handle_save(self):
         self.notes_pane.save_notes()
+
+    def handle_monster_open(self):
+        self.content_pane.show_monster_pane()
+
+    def handle_npc_open(self):
+        self.content_pane.show_npc_pane()
+
+    def handle_clear_panes(self):
+        self.content_pane.clear_additional_panes()
 
 
 def main():

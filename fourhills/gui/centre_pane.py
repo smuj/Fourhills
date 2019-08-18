@@ -20,3 +20,8 @@ class CentrePane(QtWidgets.QWidget):
         self.layout.addWidget(self.centre_text)
 
         self.setLayout(self.layout)
+
+    def set_content(self, content_source):
+        """Set the contents text based on the content_source"""
+        with open(content_source) as f:
+            self.centre_text.setText(f.read())

@@ -4,12 +4,11 @@ import os
 from PySide2 import QtWidgets
 
 from fourhills.fourhills import SCENE_FILENAME
-from fourhills.setting import Setting
 
 
 class LocationPane(QtWidgets.QWidget):
 
-    def __init__(self, **kwargs):
+    def __init__(self, setting, **kwargs):
         super().__init__(**kwargs)
         self.layout = QtWidgets.QVBoxLayout()
 
@@ -19,17 +18,7 @@ class LocationPane(QtWidgets.QWidget):
 
         self.setLayout(self.layout)
 
-        # Create setting and populate location list
-        self.setting = Setting()
-        if not self.setting.root:
-            msg = QtWidgets.QMessageBox(
-                QtWidgets.QMessageBox.Critical,
-                "Setting not found",
-                "Could not load setting - please run program from a valid directory!",
-                QtWidgets.QMessageBox.Ok
-            )
-            msg.exec_()
-            return
+        self.setting = setting
         self.populate_locations()
 
     def populate_locations(self):
