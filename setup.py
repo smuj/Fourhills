@@ -19,5 +19,8 @@ setuptools.setup(
             '4h = fourhills.fourhills:main',
             'fourhills = fourhills.fourhills:main',
         ],
+        'gui_scripts': [
+            '4hgui = fourhills.gui.main_window:main',
+        ],
     }
 )

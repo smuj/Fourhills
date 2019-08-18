@@ -40,10 +40,14 @@ class MainWindow(QMainWindow):
         self.centralwidget.setLayout(self.root_layout)
 
 
-if __name__ == "__main__":
+def main():
     import sys
     app = QApplication([])
     app.setApplicationName("FourHills GUI")
     window = MainWindow()
     window.show()
     sys.exit(app.exec_())
+
+
+if __name__ == "__main__":
+    main()

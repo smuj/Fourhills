@@ -1,10 +1,9 @@
 """Define a Qt Widget for the Notes Pane"""
 
 from PySide2 import QtWidgets
-from PySide2.QtWidgets import QWidget
 
 
-class NotesPane(QWidget):
+class NotesPane(QtWidgets.QWidget):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.layout = QtWidgets.QVBoxLayout()
