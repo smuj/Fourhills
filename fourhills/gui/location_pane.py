@@ -3,6 +3,7 @@
 import os
 from PySide2 import QtWidgets
 
+from fourhills.gui.tab_result import TabResult
 from fourhills.fourhills import SCENE_FILENAME
 
 
@@ -30,3 +31,15 @@ class LocationPane(QtWidgets.QWidget):
                 rel_path = os.path.relpath(root, world_dir)
                 rel_path.replace(os.path.sep, "/")
                 self.location_list.addItem(rel_path)
+        if self.location_list.count():
+            self.location_list.setCurrentRow(0)
+
+    def has_focus(self):
+        """Alternative to hasFocus which checks widget children for focus"""
+        return self.location_list.hasFocus()
+
+    def handle_tab(self):
+        if self.location_list.hasFocus():
+            return TabResult.TabRemaining
+        self.location_list.setFocus()
+        return TabResult.TabConsumed

@@ -3,8 +3,9 @@ Definition for centre pane, which shows various kinds of information such as sce
 battle information, and will be updated to contain other kinds.
 """
 
-
 from PySide2 import QtWidgets
+
+from fourhills.gui.tab_result import TabResult
 
 
 class CentrePane(QtWidgets.QWidget):
@@ -25,3 +26,13 @@ class CentrePane(QtWidgets.QWidget):
         """Set the contents text based on the content_source"""
         with open(content_source) as f:
             self.centre_text.setText(f.read())
+
+    def has_focus(self):
+        """Alternative to hasFocus which checks widget children for focus"""
+        return self.centre_text.hasFocus()
+
+    def handle_tab(self):
+        if self.centre_text.hasFocus():
+            return TabResult.TabRemaining
+        self.centre_text.setFocus()
+        return TabResult.TabConsumed

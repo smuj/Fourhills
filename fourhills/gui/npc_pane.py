@@ -4,6 +4,8 @@ import os
 import glob
 from PySide2 import QtWidgets
 
+from fourhills.gui.tab_result import TabResult
+
 
 class NpcPane(QtWidgets.QWidget):
 
@@ -37,9 +39,28 @@ class NpcPane(QtWidgets.QWidget):
             rel_path = os.path.relpath(npc_file, npc_dir)
             rel_path.replace(os.path.sep, "/")
             self.npc_list.addItem(rel_path)
+        if self.npc_list.count():
+            self.npc_list.setCurrentRow(0)
 
     def on_npc_activated(self, npc):
         npc_text = npc.text().replace("/", os.path.sep)
         path = os.path.join(self.settings.npcs_dir, npc_text)
         with open(path) as f:
             self.npc_info.setText(f.read())
+
+    def has_focus(self):
+        """Alternative to hasFocus which checks widget children for focus"""
+        return self.npc_list.hasFocus() or self.npc_info.hasFocus()
+
+    def handle_tab(self):
+        set_focus = None
+        if not self.npc_list.hasFocus() and not self.npc_info.hasFocus():
+            set_focus = self.npc_list
+        elif self.npc_list.hasFocus():
+            set_focus = self.npc_info
+
+        if set_focus is not None:
+            set_focus.setFocus()
+            return TabResult.TabConsumed
+
+        return TabResult.TabRemaining

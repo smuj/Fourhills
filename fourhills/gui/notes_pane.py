@@ -2,6 +2,8 @@
 
 from PySide2 import QtCore, QtWidgets
 
+from fourhills.gui.tab_result import TabResult
+
 
 class NotesPane(QtWidgets.QWidget):
 
@@ -92,3 +94,18 @@ class NotesPane(QtWidgets.QWidget):
 
     def reset_status(self):
         self.status_lbl.setText("")
+
+    def has_focus(self):
+        """Alternative to hasFocus which checks widget children for focus"""
+        return (
+            self.load_btn.hasFocus() or
+            self.save_btn.hasFocus() or
+            self.file_path.hasFocus() or
+            self.notes_text.hasFocus()
+        )
+
+    def handle_tab(self):
+        if not self.notes_text.hasFocus():
+            self.notes_text.setFocus()
+            return TabResult.TabConsumed
+        return TabResult.TabRemaining

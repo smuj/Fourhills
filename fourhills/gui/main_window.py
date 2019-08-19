@@ -5,6 +5,7 @@ from PySide2.QtWidgets import QApplication, QMainWindow, QWidget
 
 from fourhills.gui.content_pane import ContentPane
 from fourhills.gui.notes_pane import NotesPane
+from fourhills.gui.tab_result import TabResult
 
 
 class TestWidget(QWidget):
@@ -60,6 +61,11 @@ class MainWindow(QMainWindow):
             self.centralwidget,
             self.handle_clear_panes
         )
+        self.tab_shortcut = QtWidgets.QShortcut(
+            "Ctrl+Tab",
+            self.centralwidget,
+            self.handle_tab
+        )
 
     def handle_open(self,):
         self.notes_pane.load_notes()
@@ -75,6 +81,16 @@ class MainWindow(QMainWindow):
 
     def handle_clear_panes(self):
         self.content_pane.clear_additional_panes()
+
+    def handle_tab(self):
+        panes = [self.content_pane, self.notes_pane, self.content_pane]
+        for idx, pane in enumerate(panes[:-1]):
+            if pane.has_focus():
+                result = pane.handle_tab()
+                if result == TabResult.TabRemaining:
+                    panes[idx + 1].handle_tab()
+                return
+        self.content_pane.handle_tab()
 
 
 def main():

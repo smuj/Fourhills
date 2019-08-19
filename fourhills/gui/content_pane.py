@@ -7,6 +7,7 @@ from fourhills.gui.centre_pane import CentrePane
 from fourhills.gui.location_pane import LocationPane
 from fourhills.gui.monster_pane import MonsterPane
 from fourhills.gui.npc_pane import NpcPane
+from fourhills.gui.tab_result import TabResult
 from fourhills.setting import Setting
 
 
@@ -60,12 +61,55 @@ class ContentPane(QtWidgets.QWidget):
         if self.npc_pane.isVisible():
             self.npc_pane.hide()
         self.monster_pane.show()
+        # Focus monster pane as it has been opened
+        if not self.monster_pane.has_focus():
+            self.monster_pane.handle_tab()
 
     def show_npc_pane(self):
         if self.monster_pane.isVisible():
             self.monster_pane.hide()
         self.npc_pane.show()
+        # Focus NPC pane as it has been opened
+        if not self.npc_pane.has_focus():
+            self.npc_pane.handle_tab()
 
     def clear_additional_panes(self):
         self.monster_pane.hide()
         self.npc_pane.hide()
+        if self.monster_pane.has_focus() or self.npc_pane.has_focus():
+            self.location_pane.handle_tab()
+
+    def has_focus(self):
+        """Alternative to hasFocus which checks widget children for focus"""
+        return (
+            self.location_pane.has_focus() or
+            (self.npc_pane.isVisible() and self.npc_pane.has_focus()) or
+            (self.monster_pane.isVisible() and self.monster_pane.has_focus()) or
+            self.centre_pane.has_focus()
+        )
+
+    def handle_tab(self):
+        panes = [self.location_pane, self.centre_pane]
+        if self.monster_pane.isVisible():
+            panes += [self.monster_pane]
+        if self.npc_pane.isVisible():
+            panes += [self.npc_pane]
+
+        for idx, pane in enumerate(panes):
+            if pane.has_focus():
+                result = pane.handle_tab()
+                if result == TabResult.TabRemaining and pane == panes[-1]:
+                    return TabResult.TabRemaining
+                elif result == TabResult.TabRemaining:
+                    panes[idx + 1].handle_tab()
+                    return TabResult.TabConsumed
+                elif result == TabResult.TabConsumed:
+                    return TabResult.TabConsumed
+
+        # Should never reach here as main_window will only call handle_tab on this if
+        # something in this widget has focus
+        self.location_pane.handle_tab()
+        return TabResult.TabConsumed
+
+    # def set_focussed(self):
+    #     self.location_pane.setFocus()

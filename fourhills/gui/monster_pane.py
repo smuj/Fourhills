@@ -4,6 +4,8 @@ import os
 import glob
 from PySide2 import QtWidgets
 
+from fourhills.gui.tab_result import TabResult
+
 
 class MonsterPane(QtWidgets.QWidget):
 
@@ -38,8 +40,28 @@ class MonsterPane(QtWidgets.QWidget):
             rel_path.replace(os.path.sep, "/")
             self.monster_list.addItem(rel_path)
 
+        if self.monster_list.count():
+            self.monster_list.setCurrentRow(0)
+
     def on_monster_activated(self, monster):
         monster_txt = monster.text().replace("/", os.path.sep)
         path = os.path.join(self.settings.monsters_dir, monster_txt)
         with open(path) as f:
             self.monster_info.setText(f.read())
+
+    def has_focus(self):
+        """Alternative to hasFocus which checks widget children for focus"""
+        return self.monster_list.hasFocus() or self.monster_info.hasFocus()
+
+    def handle_tab(self):
+        set_focus = None
+        if not self.monster_list.hasFocus() and not self.monster_info.hasFocus():
+            set_focus = self.monster_list
+        elif self.monster_list.hasFocus():
+            set_focus = self.monster_info
+
+        if set_focus is not None:
+            set_focus.setFocus()
+            return TabResult.TabConsumed
+
+        return TabResult.TabRemaining
