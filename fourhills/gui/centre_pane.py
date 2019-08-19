@@ -31,7 +31,7 @@ class CentrePane(QtWidgets.QWidget):
         """Alternative to hasFocus which checks widget children for focus"""
         return self.centre_text.hasFocus()
 
-    def handle_tab(self):
+    def handle_tab(self, reverse=False):
         if self.centre_text.hasFocus():
             return TabResult.TabRemaining
         self.centre_text.setFocus()

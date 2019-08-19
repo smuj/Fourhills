@@ -52,15 +52,19 @@ class NpcPane(QtWidgets.QWidget):
         """Alternative to hasFocus which checks widget children for focus"""
         return self.npc_list.hasFocus() or self.npc_info.hasFocus()
 
-    def handle_tab(self):
-        set_focus = None
-        if not self.npc_list.hasFocus() and not self.npc_info.hasFocus():
-            set_focus = self.npc_list
-        elif self.npc_list.hasFocus():
-            set_focus = self.npc_info
+    def handle_tab(self, reverse=False):
+        controls = [self.npc_list, self.npc_info]
+        if reverse:
+            controls.reverse()
 
-        if set_focus is not None:
-            set_focus.setFocus()
-            return TabResult.TabConsumed
+        for idx, control in enumerate(controls):
+            if control.hasFocus():
+                if control == controls[-1]:
+                    return TabResult.TabRemaining
+                else:
+                    controls[idx + 1].setFocus()
+                    return TabResult.TabConsumed
 
-        return TabResult.TabRemaining
+        # If no control has focus, set the default control
+        controls[0].setFocus()
+        return TabResult.TabConsumed

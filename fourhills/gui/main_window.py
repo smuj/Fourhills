@@ -64,7 +64,12 @@ class MainWindow(QMainWindow):
         self.tab_shortcut = QtWidgets.QShortcut(
             "Ctrl+Tab",
             self.centralwidget,
-            self.handle_tab
+            self.handle_forward_tab
+        )
+        self.reverse_tab_shortcut = QtWidgets.QShortcut(
+            "Ctrl+Shift+Tab",
+            self.centralwidget,
+            self.handle_reverse_tab
         )
 
     def handle_open(self,):
@@ -82,15 +87,21 @@ class MainWindow(QMainWindow):
     def handle_clear_panes(self):
         self.content_pane.clear_additional_panes()
 
-    def handle_tab(self):
+    def handle_tab(self, reverse=False):
         panes = [self.content_pane, self.notes_pane, self.content_pane]
         for idx, pane in enumerate(panes[:-1]):
             if pane.has_focus():
-                result = pane.handle_tab()
+                result = pane.handle_tab(reverse)
                 if result == TabResult.TabRemaining:
-                    panes[idx + 1].handle_tab()
+                    panes[idx + 1].handle_tab(reverse)
                 return
         self.content_pane.handle_tab()
+
+    def handle_forward_tab(self):
+        self.handle_tab()
+
+    def handle_reverse_tab(self):
+        self.handle_tab(reverse=True)
 
 
 def main():

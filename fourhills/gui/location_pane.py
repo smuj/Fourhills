@@ -38,7 +38,7 @@ class LocationPane(QtWidgets.QWidget):
         """Alternative to hasFocus which checks widget children for focus"""
         return self.location_list.hasFocus()
 
-    def handle_tab(self):
+    def handle_tab(self, reverse=False):
         if self.location_list.hasFocus():
             return TabResult.TabRemaining
         self.location_list.setFocus()

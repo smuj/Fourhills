@@ -88,28 +88,27 @@ class ContentPane(QtWidgets.QWidget):
             self.centre_pane.has_focus()
         )
 
-    def handle_tab(self):
+    def handle_tab(self, reverse=False):
         panes = [self.location_pane, self.centre_pane]
         if self.monster_pane.isVisible():
             panes += [self.monster_pane]
         if self.npc_pane.isVisible():
             panes += [self.npc_pane]
+        if reverse:
+            panes.reverse()
 
         for idx, pane in enumerate(panes):
             if pane.has_focus():
-                result = pane.handle_tab()
+                result = pane.handle_tab(reverse)
                 if result == TabResult.TabRemaining and pane == panes[-1]:
                     return TabResult.TabRemaining
                 elif result == TabResult.TabRemaining:
-                    panes[idx + 1].handle_tab()
+                    panes[idx + 1].handle_tab(reverse)
                     return TabResult.TabConsumed
                 elif result == TabResult.TabConsumed:
                     return TabResult.TabConsumed
 
-        # Should never reach here as main_window will only call handle_tab on this if
-        # something in this widget has focus
-        self.location_pane.handle_tab()
+        # If this point is reached, this pane does not currently have focus, so focus should be
+        # given to the first component - or last in case of reverse
+        panes[0].handle_tab(reverse)
         return TabResult.TabConsumed
-
-    # def set_focussed(self):
-    #     self.location_pane.setFocus()

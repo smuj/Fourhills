@@ -104,7 +104,7 @@ class NotesPane(QtWidgets.QWidget):
             self.notes_text.hasFocus()
         )
 
-    def handle_tab(self):
+    def handle_tab(self, reverse=False):
         if not self.notes_text.hasFocus():
             self.notes_text.setFocus()
             return TabResult.TabConsumed
