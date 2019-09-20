@@ -1,6 +1,6 @@
 from pathlib import Path
 from typing import Optional
-from fourhills_exceptions import FourhillsSettingStructureError
+from fourhills.exceptions import FourhillsSettingStructureError
 
 
 class Setting:
