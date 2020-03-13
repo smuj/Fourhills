@@ -88,7 +88,9 @@ class Npc:
         lines.append(f"Appearance: {self.appearance}")
         if self.accent:
             lines.append(f"Accent: {self.accent}")
-        lines.append((self.temperament or "") + (" " + self.background or ""))
+
+        if self.temperament or self.background:
+            lines.append(" ".join([self.temperament or "", self.background or ""]))
 
         if self.phrases:
             lines.append("")
