@@ -7,7 +7,7 @@ from fourhills import Setting, StatBlock, Npc
 from fourhills.exceptions import FourhillsFileLoadError
 from fourhills.text_utils import format_list, display_panes
 
-SCENE_FILENAME = "battle.yaml"
+SCENE_FILENAME = "scene.yaml"
 
 
 class Scene:
