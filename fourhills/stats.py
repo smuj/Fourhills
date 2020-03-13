@@ -6,7 +6,9 @@ from typing import Optional, Dict, List
 from fourhills import Setting
 from fourhills.text_utils import format_indented_paragraph, format_list, centre_pad
 from fourhills.exceptions import (
-    FourhillsFileLoadError, FourhillsSettingStructureError
+    FourhillsError,
+    FourhillsFileLoadError,
+    FourhillsSettingStructureError,
 )
 
 
@@ -41,6 +43,60 @@ class StatBlock:
 
     def __str__(self):
         return self.summary_info(line_width=80)
+
+    @property
+    def xp(self):
+        """The experience points of the monster.
+
+        Returns
+        -------
+        int
+            The number of XP.
+        """
+        xp_table = {
+            0: 0,
+            0.125: 25,
+            0.25: 50,
+            0.5: 100,
+            1: 200,
+            2: 450,
+            3: 700,
+            4: 1100,
+            5: 1800,
+            6: 2300,
+            7: 2900,
+            8: 3900,
+            9: 5000,
+            10: 5900,
+            11: 7200,
+            12: 8400,
+            13: 10000,
+            14: 11500,
+            15: 13000,
+            16: 15000,
+            17: 18000,
+            18: 20000,
+            19: 22000,
+            20: 25000,
+            21: 33000,
+            22: 41000,
+            23: 50000,
+            24: 62000,
+            25: 75000,
+            26: 90000,
+            27: 105000,
+            28: 120000,
+            29: 135000,
+            30: 155000,
+        }
+        try:
+            return xp_table[self.challenge]
+        except KeyError:
+            raise FourhillsError(
+                f"StatBlock '{self.name}' has invalid challenge rating "
+                f"{self.challenge}. Challenge rating must be either 0.125, 0.25 or "
+                f"0.5, or an integer between 0 and 30."
+            )
 
     @staticmethod
     def calculate_ability_modifier(ability_score: int) -> int:
@@ -190,7 +246,7 @@ class StatBlock:
         lines.extend(format_list("Languages", self.languages or ["none"], line_width))
 
         # Challenge rating
-        lines.append(f"Challenge: {self.challenge}")
+        lines.append(f"Challenge: {self.challenge} ({self.xp} XP)")
 
         # Separator
         lines.append("")
