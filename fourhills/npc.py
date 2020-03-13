@@ -2,10 +2,8 @@ import yaml
 from dataclasses import dataclass
 from typing import Optional, List, Dict
 from fourhills import Setting, StatBlock
-from fourhills.exceptions import (
-    FourhillsFileLoadError, FourhillsSettingStructureError
-)
-from fourhills.text_utils import centre_pad, wrap_lines_paragraph
+from fourhills.exceptions import FourhillsFileLoadError, FourhillsSettingStructureError
+from fourhills.text_utils import wrap_lines_paragraph, title
 
 
 @dataclass
@@ -37,12 +35,9 @@ class Npc:
         list of str
             A summary of the NPC block as a list of lines.
         """
-        lines = []
-        if self.deceased:
-            lines.append(centre_pad(f"{self.name} (deceased)", line_width))
-        else:
-            lines.append(centre_pad(self.name, line_width))
-        lines.append("=" * line_width)
+        lines = title(
+            f"{self.name} (deceased)" if self.deceased else self.name, line_width
+        )
 
         if self.stats:
             # Size, type and alignment

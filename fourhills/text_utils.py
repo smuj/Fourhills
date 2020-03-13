@@ -75,6 +75,11 @@ def centre_pad(s, line_width):
     return "{:^{width}}".format(s, width=line_width)
 
 
+def title(text: str, line_width: int) -> list:
+    """Create a header by centre-aligning text and double-underlining."""
+    return [centre_pad(text, line_width), "=" * line_width]
+
+
 def display_panes(panes: List[List[str]], columns: int, column_width: int):
     """Display a set of panes in columns on the screen via click.
 

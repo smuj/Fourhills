@@ -4,7 +4,12 @@ import yaml
 from dataclasses import dataclass
 from typing import Optional, Dict, List
 from fourhills import Setting
-from fourhills.text_utils import format_indented_paragraph, format_list, centre_pad
+from fourhills.text_utils import (
+    format_indented_paragraph,
+    format_list,
+    centre_pad,
+    title,
+)
 from fourhills.exceptions import (
     FourhillsError,
     FourhillsFileLoadError,
@@ -132,13 +137,9 @@ class StatBlock:
         list of str
             A summary of the stat block as a list of lines.
         """
-        lines = []
-        if quantity:
-            header_text = f"{self.name} x{quantity:d}"
-        else:
-            header_text = self.name
-        lines.append(centre_pad(header_text, line_width))
-        lines.append("=" * line_width)
+        lines = title(
+            f"{self.name} x{quantity:d}" if quantity else self.name, line_width
+        )
 
         # Size, type and alignment
         lines.append(f"{self.size.capitalize()} {self.creature_type}, {self.alignment}")

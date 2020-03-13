@@ -13,7 +13,6 @@ class Setting:
         self.root = self.find_root()
         self.pane_width = 56
         self.panes = 2
-        self.column_width = 60
 
     @staticmethod
     def find_root() -> Optional[Path]:

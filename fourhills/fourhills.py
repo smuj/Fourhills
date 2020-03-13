@@ -1,11 +1,10 @@
 import sys
 import re
 import yaml
-import click
 from typing import List, Tuple
 from fourhills import Setting, StatBlock, Npc
 from fourhills.exceptions import FourhillsFileLoadError
-from fourhills.text_utils import format_list, display_panes
+from fourhills.text_utils import display_panes, title
 
 SCENE_FILENAME = "scene.yaml"
 
@@ -85,7 +84,7 @@ class Scene:
                 + npc.battle_info(self.setting.pane_width)
             )
 
-        display_panes(panes, self.setting.panes, self.setting.column_width)
+        display_panes(panes, self.setting.panes, self.setting.pane_width)
 
     def display_npcs(self):
         """Display information about NPCs."""
@@ -98,23 +97,36 @@ class Scene:
                 + npc.character_info(self.setting.pane_width)
             )
 
-        display_panes(panes, self.setting.panes, self.setting.column_width)
+        display_panes(panes, self.setting.panes, self.setting.pane_width)
 
     def display_scene(self):
         """Display information about location."""
-        lines = list()
-        monster_strings = [
-            f"{name} x{quantity}" if quantity != 1 else name
-            for name, quantity in self.monster_names_quantities
-        ]
+        panes = list()
         if self.monster_names_quantities:
-            lines.extend(
-                format_list("Monsters", monster_strings, self.setting.pane_width)
-            )
+            lines = title("Monsters", self.setting.pane_width)
+            for name, quantity in self.monster_names_quantities:
+                lines.append(f"{name} x{quantity}" if quantity != 1 else name)
+            panes.append(lines)
         if self.npc_names:
-            lines.extend(format_list("NPCs", self.npc_names, self.setting.pane_width))
+            lines = title("NPCs", self.setting.pane_width)
+            for npc_name in self.npc_names:
+                lines.append(npc_name)
+            panes.append(lines)
+        xp_lines = title("XP", self.setting.pane_width)
+        monster_xp = sum(
+            quantity * StatBlock.from_name(monster_name, self.setting).xp
+            for monster_name, quantity in self.monster_names_quantities
+        )
+        xp_lines.append("Total monster XP = " + str(monster_xp))
+        npc_xp = sum(
+            quantity * Npc.from_name(npc_name, self.setting).stats.xp
+            for npc_name in self.npc_names
+        )
+        xp_lines.append("Total NPC XP = " + str(npc_xp))
+        xp_lines.append("Total XP = " + str(monster_xp + npc_xp))
+        panes.append(xp_lines)
 
-        click.echo_via_pager("\n".join(lines))
+        display_panes(panes, self.setting.panes, self.setting.pane_width)
 
 
 def print_usage():
