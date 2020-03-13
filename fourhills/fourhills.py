@@ -89,14 +89,16 @@ class Scene:
 
     def display_npcs(self):
         """Display information about NPCs."""
-        lines = list()
+        panes = list()
 
         for npc_name in self.npc_names:
             npc = Npc.from_name(npc_name, self.setting)
-            lines.extend(npc.summary_info(self.setting.pane_width))
-            lines.extend(npc.character_info(self.setting.pane_width))
+            panes.append(
+                npc.summary_info(self.setting.pane_width)
+                + npc.character_info(self.setting.pane_width)
+            )
 
-        click.echo_via_pager("\n".join(lines))
+        display_panes(panes, self.setting.panes, self.setting.column_width)
 
     def display_scene(self):
         """Display information about location."""
@@ -105,8 +107,12 @@ class Scene:
             f"{name} x{quantity}" if quantity != 1 else name
             for name, quantity in self.monster_names_quantities
         ]
-        lines.extend(format_list("Monsters", monster_strings, self.setting.pane_width))
-        lines.extend(format_list("NPCs", self.npc_names, self.setting.pane_width))
+        if self.monster_names_quantities:
+            lines.extend(
+                format_list("Monsters", monster_strings, self.setting.pane_width)
+            )
+        if self.npc_names:
+            lines.extend(format_list("NPCs", self.npc_names, self.setting.pane_width))
 
         click.echo_via_pager("\n".join(lines))
 
