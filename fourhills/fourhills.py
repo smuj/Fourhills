@@ -102,26 +102,48 @@ class Scene:
     def display_scene(self):
         """Display information about location."""
         panes = list()
-        if self.monster_names_quantities:
-            lines = title("Monsters", self.setting.pane_width)
-            for name, quantity in self.monster_names_quantities:
-                lines.append(f"{name} x{quantity}" if quantity != 1 else name)
-            panes.append(lines)
-        if self.npc_names:
-            lines = title("NPCs", self.setting.pane_width)
-            for npc_name in self.npc_names:
-                lines.append(npc_name)
-            panes.append(lines)
-        xp_lines = title("XP", self.setting.pane_width)
+
+        # List of all of the monsters at the location, and the quantities of each
+        monsters_quantities = (
+            [
+                (StatBlock.from_name(monster_name, self.setting), quantity)
+                for monster_name, quantity in self.monster_names_quantities
+            ]
+            if self.monster_names_quantities
+            else []
+        )
+
+        # List of all of the NPCs at the location
+        npcs = (
+            [Npc.from_name(npc_name, self.setting) for npc_name in self.npc_names]
+            if self.npc_names
+            else []
+        )
+
+        # If there are monsters, create a pane of text displaying them
+        if monsters_quantities:
+            monster_lines = title("Monsters", self.setting.pane_width)
+            for monster, quantity in monsters_quantities:
+                monster_lines.append(
+                    f"{monster.name} x{quantity}" if quantity != 1 else monster.name
+                )
+            panes.append(monster_lines)
+
+        # If there are NPCs, create a pane of text displaying them
+        if npcs:
+            npc_lines = title("NPCs", self.setting.pane_width)
+            for npc in npcs:
+                npc_lines.append(npc.name)
+            panes.append(npc_lines)
+
+        # Calculate the total monster and NPC XP
         monster_xp = sum(
-            quantity * StatBlock.from_name(monster_name, self.setting).xp
-            for monster_name, quantity in self.monster_names_quantities
+            quantity * monster.xp for monster, quantity in monsters_quantities
         )
+        npc_xp = sum(npc.stats.xp if npc.stats else 0 for npc in npcs)
+
+        xp_lines = title("XP", self.setting.pane_width)
         xp_lines.append("Total monster XP = " + str(monster_xp))
-        npc_xp = sum(
-            quantity * Npc.from_name(npc_name, self.setting).stats.xp
-            for npc_name in self.npc_names
-        )
         xp_lines.append("Total NPC XP = " + str(npc_xp))
         xp_lines.append("Total XP = " + str(monster_xp + npc_xp))
         panes.append(xp_lines)
