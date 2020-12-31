@@ -2,7 +2,7 @@ import sys
 import re
 import yaml
 from typing import List, Tuple
-from fourhills import Setting, StatBlock, Npc
+from fourhills import Setting, StatBlock, Npc, Cheatsheet
 from fourhills.exceptions import FourhillsFileLoadError
 from fourhills.text_utils import display_panes, title
 
@@ -150,6 +150,22 @@ class Scene:
 
         display_panes(panes, self.setting.panes, self.setting.pane_width)
 
+    def display_cheatsheet(self, cheatsheet_title):
+        """Display a cheatsheet.
+        Parameters
+        ----------
+        cheatsheet_title: str
+            The title of the cheatsheet. Must exactly match a filename in the setting's
+            `cheatsheets` folder, excluding the extension.
+        """
+        cheatsheet = Cheatsheet.from_name(cheatsheet_title, self.setting)
+
+        panes = [
+            section.lines(self.setting.pane_width) for section in cheatsheet.sections
+        ]
+
+        display_panes(panes, self.setting.panes, self.setting.pane_width)
+
 
 def print_usage():
     raise NotImplementedError
@@ -168,6 +184,8 @@ def main():
             scene.display_npcs()
         elif sys.argv[1] in ["s", "scene"]:
             scene.display_scene()
+        elif sys.argv[1] in ["c", "cs", "cheatsheet"]:
+            scene.display_cheatsheet(sys.argv[2])
         else:
             print_usage()
     else:
