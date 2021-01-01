@@ -80,7 +80,13 @@ def title(text: str, line_width: int) -> list:
     return [centre_pad(text, line_width), "=" * line_width]
 
 
-def display_panes(panes: List[List[str]], columns: int, column_width: int):
+def display_panes(
+    panes: List[List[str]],
+    columns: int,
+    column_width: int,
+    pane_gap: bool = True,
+    column_gap: bool = True,
+):
     """Display a set of panes in columns on the screen via click.
 
     Parameters
@@ -92,14 +98,21 @@ def display_panes(panes: List[List[str]], columns: int, column_width: int):
         How many columns to display.
     column_width : int
         The width of each column, in characters.
+    pane_gap: bool
+        Whether to include a blank line between panes in a column. Defaults to True.
+    column_gap : bool
+        Whether to include a blank vertical line between columns. Defaults to True.
     """
 
     # This returns a generator that will produce all of the lines for a particular
-    # column on the screen until there are no more; after that, it will produce None
-    # forever
+    # column on the screen until there are no more, followed by a blank line (if
+    # pane_gap is True); after that, it will produce None forever.
     def line_for_column(column_index):
         for pane_index in range(column_index, len(panes), columns):
             yield from panes[pane_index]
+            # If there's a gap between panes in a column, produce a blank line
+            if pane_gap:
+                yield " " * column_width
         while True:
             yield None
 
@@ -108,7 +121,13 @@ def display_panes(panes: List[List[str]], columns: int, column_width: int):
     # display. If any items in the list are None, it will replace them with spaces for
     # the column width.
     def format_screen_line(line_parts):
-        return "".join(
+        # If there is to be a column gap, join the parts with a space. Otherwise, join
+        # them with an empty string.
+        joining_character = " " if column_gap else ""
+        # Join the parts together to make a screen line. If any part is None then
+        # replace it with spaces. Parts are None when they are in a column that has no
+        # panes left to display.
+        return joining_character.join(
             [
                 part.ljust(column_width) if part else " " * column_width
                 for part in line_parts
