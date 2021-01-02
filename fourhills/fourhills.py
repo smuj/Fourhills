@@ -33,9 +33,7 @@ def get_setting():
     try:
         return Setting()
     except FourhillsSettingStructureError as e:
-        print(
-            "Current directory does not appear to part of a valid setting:", str(e)
-        )
+        print("Current directory does not appear to part of a valid setting:", str(e))
         sys.exit()
 
 
@@ -75,8 +73,6 @@ def cheatsheet(cheatsheet_title):
 
     cheatsheet = Cheatsheet.from_name(cheatsheet_title, setting)
 
-    panes = [
-        section.lines(setting.pane_width) for section in cheatsheet.sections
-    ]
+    panes = [section.lines(setting.pane_width) for section in cheatsheet.sections]
 
     display_panes(panes, setting.panes, setting.pane_width)
