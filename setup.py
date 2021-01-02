@@ -15,8 +15,8 @@ setuptools.setup(
     ],
     entry_points={
         'console_scripts': [
-            'fh = fourhills.fourhills:main',
-            'fourhills = fourhills.fourhills:main',
+            'fh = fourhills.fourhills:cli',
+            'fourhills = fourhills.fourhills:cli',
         ],
     }
 )

@@ -1,33 +1,70 @@
 import sys
-from fourhills import Scene
+import click
+from fourhills import Scene, Setting, Cheatsheet
+from fourhills.text_utils import display_panes
 
 SCENE_FILENAME = "scene.yaml"
 
 
-def print_usage():
-    raise NotImplementedError
+class AliasedGroup(click.Group):
+    """Click group that accepts unique prefixes of a command as the command.
+
+    Notes
+    -----
+    This class has been taken almost verbatim from "Command Aliases" section of
+    https://click.palletsprojects.com/en/7.x/advanced/
+
+    """
+
+    def get_command(self, ctx, cmd_name):
+        rv = click.Group.get_command(self, ctx, cmd_name)
+        if rv is not None:
+            return rv
+        matches = [x for x in self.list_commands(ctx) if x.startswith(cmd_name)]
+        if not matches:
+            return None
+        elif len(matches) == 1:
+            return click.Group.get_command(self, ctx, matches[0])
+        ctx.fail(f"Ambiguous command. Too many matches: {', '.join(sorted(matches))}")
 
 
-def main():
+def get_scene():
     try:
-        scene = Scene.from_file(SCENE_FILENAME)
+        return Scene.from_file(SCENE_FILENAME)
     except FileNotFoundError:
         print("No scene file at this location")
         sys.exit()
-    if len(sys.argv) > 1:
-        if sys.argv[1] in ["b", "battle"]:
-            scene.display_battle()
-        elif sys.argv[1] in ["n", "npc", "npcs"]:
-            scene.display_npcs()
-        elif sys.argv[1] in ["s", "scene"]:
-            scene.display_scene()
-        elif sys.argv[1] in ["c", "cs", "cheatsheet"]:
-            scene.display_cheatsheet(sys.argv[2])
-        else:
-            print_usage()
-    else:
-        scene.display_scene()
 
 
-if __name__ == "__main__":
-    main()
+@click.group(cls=AliasedGroup)
+@click.version_option(message="Fourhills version %(version)s")
+def cli():
+    pass
+
+
+@cli.command()
+def battle():
+    get_scene().display_battle()
+
+@cli.command()
+def npcs():
+    get_scene().display_npcs()
+
+
+@cli.command()
+def scene():
+    get_scene().display_scene()
+
+
+@cli.command()
+@click.argument("cheatsheet_title")
+def cheatsheet(cheatsheet_title):
+    setting = Setting()
+
+    cheatsheet = Cheatsheet.from_name(cheatsheet_title, setting)
+
+    panes = [
+        section.lines(setting.pane_width) for section in cheatsheet.sections
+    ]
+
+    display_panes(panes, setting.panes, setting.pane_width)

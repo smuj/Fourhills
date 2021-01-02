@@ -146,19 +146,3 @@ class Scene:
         panes.append(xp_lines)
 
         display_panes(panes, self.setting.panes, self.setting.pane_width)
-
-    def display_cheatsheet(self, cheatsheet_title):
-        """Display a cheatsheet.
-        Parameters
-        ----------
-        cheatsheet_title: str
-            The title of the cheatsheet. Must exactly match a filename in the setting's
-            `cheatsheets` folder, excluding the extension.
-        """
-        cheatsheet = Cheatsheet.from_name(cheatsheet_title, self.setting)
-
-        panes = [
-            section.lines(self.setting.pane_width) for section in cheatsheet.sections
-        ]
-
-        display_panes(panes, self.setting.panes, self.setting.pane_width)
