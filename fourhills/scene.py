@@ -1,7 +1,7 @@
 import re
 import yaml
-from typing import List, Tuple
-from fourhills import Setting, StatBlock, Npc, Cheatsheet
+from typing import List, Tuple, Optional
+from fourhills import Setting, StatBlock, Npc
 from fourhills.exceptions import FourhillsFileLoadError
 from fourhills.text_utils import display_panes, title
 
@@ -10,21 +10,36 @@ class Scene:
     """Represents a particular location in the world."""
 
     def __init__(
-        self, monster_names_quantities: List[Tuple[str, int]], npc_names: List[str]
+        self,
+        monster_names_quantities: List[Tuple[str, int]],
+        npc_names: List[str],
+        setting: Optional[Setting] = None,
     ):
-        """Initialise the object."""
+        """Initialise the object.
+
+        Parameters
+        ----------
+        monster_names_quantities: list of tuples of str, int
+            A list of the monster names (as strings) and the quantity of each.
+        npc_names: list of str
+            A list of the NPC names (as strings).
+        setting : Setting or None
+            The setting the scene belongs to. If None, one will be generated.
+        """
         self.monster_names_quantities = monster_names_quantities
         self.npc_names = npc_names
-        self.setting = Setting()
+        self.setting = setting or Setting()
 
     @classmethod
-    def from_file(cls, filename: str):
+    def from_file(cls, filename: str, setting: Optional[Setting] = None):
         """Load scene info from a file and return a Scene instance.
 
         Parameters
         ----------
         filename : str
             Filename of the YAML file to load scene info from.
+        setting : Setting or None
+            The setting the scene belongs to. If None, one will be generated.
         """
         with open(filename) as f:
             try:
@@ -61,7 +76,7 @@ class Scene:
             # Stores the list of NPC names
             npc_info = scene_info["npcs"] if "npcs" in scene_info else []
 
-            return cls(monster_info, npc_info)
+            return cls(monster_info, npc_info, setting)
 
     def display_battle(self):
         """Display statistsics for battle."""

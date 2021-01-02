@@ -29,8 +29,13 @@ class Setting:
 
         Returns
         -------
-        pathlib.Path or None
-            The setting's root directory, or None if the file wasn't found
+        pathlib.Path
+            The setting's root directory
+
+        Raises
+        ------
+        FourhillsSettingStructureError
+            If the current directory is not part of a valid setting.
         """
         # Get the current working directory and resolve any symlinks etc.
         current_dir = Path.cwd().resolve()
@@ -46,8 +51,8 @@ class Setting:
                         )
                 return current_dir
             current_dir = current_dir.parent
-        # If the root directory wasn't found, return None
-        return None
+        # If the root directory wasn't found, raise an exception
+        raise FourhillsSettingStructureError("No valid root directory was found.")
 
     @property
     def world_dir(self):

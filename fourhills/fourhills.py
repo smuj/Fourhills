@@ -2,6 +2,7 @@ import sys
 import click
 from fourhills import Scene, Setting, Cheatsheet
 from fourhills.text_utils import display_panes
+from fourhills.exceptions import FourhillsSettingStructureError
 
 SCENE_FILENAME = "scene.yaml"
 
@@ -28,9 +29,19 @@ class AliasedGroup(click.Group):
         ctx.fail(f"Ambiguous command. Too many matches: {', '.join(sorted(matches))}")
 
 
+def get_setting():
+    try:
+        return Setting()
+    except FourhillsSettingStructureError as e:
+        print(
+            "Current directory does not appear to part of a valid setting:", str(e)
+        )
+        sys.exit()
+
+
 def get_scene():
     try:
-        return Scene.from_file(SCENE_FILENAME)
+        return Scene.from_file(SCENE_FILENAME, setting=get_setting())
     except FileNotFoundError:
         print("No scene file at this location")
         sys.exit()
@@ -46,6 +57,7 @@ def cli():
 def battle():
     get_scene().display_battle()
 
+
 @cli.command()
 def npcs():
     get_scene().display_npcs()
@@ -59,7 +71,7 @@ def scene():
 @cli.command()
 @click.argument("cheatsheet_title")
 def cheatsheet(cheatsheet_title):
-    setting = Setting()
+    setting = get_setting()
 
     cheatsheet = Cheatsheet.from_name(cheatsheet_title, setting)
 
