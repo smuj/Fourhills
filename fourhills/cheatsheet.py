@@ -42,12 +42,12 @@ class Cheatsheet:
         return f'Cheatsheet: "{self.description}"'
 
     @classmethod
-    def from_name(cls, cheatsheet_title: str, setting: Setting):
+    def from_name(cls, cheatsheet_name: str, setting: Setting):
         """Create an Cheatsheet by looking it up in the setting.
 
         Parameters
         ----------
-        cheatsheet_title: str
+        cheatsheet_name: str
             The title of the cheatsheet. Must exactly match a filename in the setting's
             `cheatsheets` folder, excluding the extension.
         setting: Setting
@@ -55,7 +55,7 @@ class Cheatsheet:
             subdirectories.
         """
         # Suspected path of the cheatsheet file
-        cheatsheet_file = setting.cheatsheets_dir / (cheatsheet_title + ".yaml")
+        cheatsheet_file = setting.cheatsheets_dir / (cheatsheet_name + ".yaml")
         if not cheatsheet_file.is_file():
             raise FourhillsSettingStructureError(
                 f"Cheatsheet file {cheatsheet_file} does not exist."

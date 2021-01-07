@@ -53,25 +53,29 @@ def cli():
 
 @cli.command()
 def battle():
+    """Display NPC and monster stat blocks at the current location."""
     get_scene().display_battle()
 
 
 @cli.command()
 def npcs():
+    """Display details of the NPCs at the current location."""
     get_scene().display_npcs()
 
 
 @cli.command()
 def scene():
+    """Display information about the scene."""
     get_scene().display_scene()
 
 
 @cli.command()
-@click.argument("cheatsheet_title")
-def cheatsheet(cheatsheet_title):
+@click.argument("cheatsheet_name", metavar='<cheatsheet_name>')
+def cheatsheet(cheatsheet_name):
+    """Display a cheatsheet called <cheatsheet_name>.yaml."""
     setting = get_setting()
 
-    cheatsheet = Cheatsheet.from_name(cheatsheet_title, setting)
+    cheatsheet = Cheatsheet.from_name(cheatsheet_name, setting)
 
     panes = [section.lines(setting.pane_width) for section in cheatsheet.sections]
 
