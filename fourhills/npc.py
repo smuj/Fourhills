@@ -2,7 +2,7 @@ import yaml
 from dataclasses import dataclass
 from typing import Optional, List, Dict
 from fourhills import Setting, StatBlock
-from fourhills.exceptions import FourhillsFileLoadError, FourhillsSettingStructureError
+from fourhills.exceptions import FourhillsFileLoadError, FourhillsFileNameError
 from fourhills.text_utils import wrap_lines_paragraph, title
 
 
@@ -111,7 +111,7 @@ class Npc:
         # Suspected path of the NPC file
         npc_file = setting.npcs_dir / (name + ".yaml")
         if not npc_file.is_file():
-            raise FourhillsSettingStructureError(f"NPC file {npc_file} does not exist.")
+            raise FourhillsFileNameError(f"NPC file {npc_file} does not exist.")
         with open(npc_file) as f:
             try:
                 npc_dict = yaml.safe_load(f)

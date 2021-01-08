@@ -13,7 +13,7 @@ from fourhills.text_utils import (
 from fourhills.exceptions import (
     FourhillsError,
     FourhillsFileLoadError,
-    FourhillsSettingStructureError,
+    FourhillsFileNameError,
 )
 
 
@@ -346,7 +346,7 @@ class StatBlock:
         # Suspected path of the stat config file
         stat_file = setting.monsters_dir / (name + ".yaml")
         if not stat_file.is_file():
-            raise FourhillsSettingStructureError(
+            raise FourhillsFileNameError(
                 f"Stat file {stat_file} does not exist."
             )
         return cls.from_file(str(stat_file))

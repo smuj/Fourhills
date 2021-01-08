@@ -2,7 +2,7 @@ import yaml
 from dataclasses import dataclass
 from typing import List
 from fourhills import Setting
-from fourhills.exceptions import FourhillsFileLoadError, FourhillsSettingStructureError
+from fourhills.exceptions import FourhillsFileLoadError, FourhillsFileNameError
 from fourhills.text_utils import wrap_lines_paragraph, title
 
 
@@ -43,12 +43,12 @@ class Cheatsheet:
 
     @classmethod
     def from_name(cls, cheatsheet_name: str, setting: Setting):
-        """Create an Cheatsheet by looking it up in the setting.
+        """Create an Cheatsheet by looking it up by name in the setting.
 
         Parameters
         ----------
         cheatsheet_name: str
-            The title of the cheatsheet. Must exactly match a filename in the setting's
+            The name of the cheatsheet. Must exactly match a filename in the setting's
             `cheatsheets` folder, excluding the extension.
         setting: Setting
             The Setting object; this is used to find the setting root and
@@ -57,7 +57,7 @@ class Cheatsheet:
         # Suspected path of the cheatsheet file
         cheatsheet_file = setting.cheatsheets_dir / (cheatsheet_name + ".yaml")
         if not cheatsheet_file.is_file():
-            raise FourhillsSettingStructureError(
+            raise FourhillsFileNameError(
                 f"Cheatsheet file {cheatsheet_file} does not exist."
             )
         with open(cheatsheet_file) as f:
