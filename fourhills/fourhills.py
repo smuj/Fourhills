@@ -2,7 +2,7 @@ import sys
 import click
 from fourhills import Scene, Setting, Cheatsheet
 from fourhills.text_utils import display_panes
-from fourhills.exceptions import FourhillsSettingStructureError
+from fourhills.exceptions import FourhillsSettingStructureError, FourhillsFileNameError
 
 SCENE_FILENAME = "scene.yaml"
 
@@ -69,13 +69,39 @@ def scene():
     get_scene().display_scene()
 
 
+def list_cheatsheets(ctx, param, value):
+    if not value or ctx.resilient_parsing:
+        return
+    setting = get_setting()
+    click.echo("  ".join(Cheatsheet.cheatsheet_names(setting)))
+    ctx.exit()
+
+
 @cli.command()
-@click.argument("cheatsheet_name", metavar='<cheatsheet_name>')
-def cheatsheet(cheatsheet_name):
-    """Display a cheatsheet called <cheatsheet_name>.yaml."""
+@click.option(
+    "-l",
+    "--list",
+    help="List the available cheatsheets.",
+    is_flag=True,
+    callback=list_cheatsheets,
+    expose_value=False,
+    is_eager=True,
+)
+@click.argument("cheatsheet_name", metavar="<cheatsheet_name>")
+@click.pass_context
+def cheatsheet(ctx, cheatsheet_name):
+    """Display the cheatsheet called <cheatsheet_name>.
+
+    Cheatsheets are referred to according to their filename in the cheatsheets
+    directory, excluding the .yaml extension.
+    """
     setting = get_setting()
 
-    cheatsheet = Cheatsheet.from_name(cheatsheet_name, setting)
+    try:
+        cheatsheet = Cheatsheet.from_name_or_prefix(cheatsheet_name, setting)
+    except FourhillsFileNameError as e:
+        click.echo(str(e))
+        ctx.exit()
 
     panes = [section.lines(setting.pane_width) for section in cheatsheet.sections]
 

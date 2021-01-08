@@ -1,4 +1,6 @@
 import yaml
+from os import listdir
+from os.path import isfile, join
 from dataclasses import dataclass
 from typing import List
 from fourhills import Setting
@@ -40,6 +42,29 @@ class Cheatsheet:
 
     def __str__(self):
         return f'Cheatsheet: "{self.description}"'
+
+    @staticmethod
+    def cheatsheet_names(setting: Setting) -> List[str]:
+        """Return a list of cheatsheet names from the Setting's cheatsheet directory.
+
+        Parameters
+        ----------
+        setting: Setting
+            The Setting object; this is used to find the setting root and
+            subdirectories.
+
+        Returns
+        -------
+        list of str
+            A list of cheatsheet names.
+        """
+        return [
+            fname.split(".")[0]
+            for fname in listdir(setting.cheatsheets_dir)
+            if (
+                isfile(join(setting.cheatsheets_dir, fname)) and fname.endswith(".yaml")
+            )
+        ]
 
     @classmethod
     def from_name(cls, cheatsheet_name: str, setting: Setting):
@@ -86,3 +111,39 @@ class Cheatsheet:
             ]
 
             return cls(description, sections)
+
+    @classmethod
+    def from_name_or_prefix(cls, cheatsheet_name: str, setting: Setting):
+        """Create an Cheatsheet by looking it up by name (or a prefix) in the setting.
+
+        Parameters
+        ----------
+        cheatsheet_name: str
+            The name of the cheatsheet, excluding the extension, or a prefix of the
+            name that is unique in the setting's `cheatsheets` folder.
+        setting: Setting
+            The Setting object; this is used to find the setting root and
+            subdirectories.
+        """
+        # Make a list of all of the cheatsheet names that start with cheatsheet_name
+        possible_cheatsheet_names = [
+            name
+            for name in cls.cheatsheet_names(setting)
+            if name.startswith(cheatsheet_name)
+        ]
+        # If the list was empty, cheatsheet_name didn't match any real cheatsheets,
+        # so raise a settings structure error.
+        if len(possible_cheatsheet_names) == 0:
+            raise FourhillsFileNameError(
+                f"Cheatsheet {cheatsheet_name} does not exist, nor is it a valid prefix"
+                " for any existing cheatsheets."
+            )
+        # If there was exactly one match, create the cheatsheet from that name
+        elif len(possible_cheatsheet_names) == 1:
+            return cls.from_name(possible_cheatsheet_names[0], setting)
+        # If there were too many matches, raise an exception
+        else:
+            raise FourhillsFileNameError(
+                "More than one cheatsheet exists with a name starting with "
+                f"{cheatsheet_name}"
+            )
