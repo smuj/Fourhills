@@ -1,6 +1,4 @@
 import yaml
-from os import listdir
-from os.path import isfile, join
 from dataclasses import dataclass
 from typing import List
 from fourhills import Setting
@@ -42,29 +40,6 @@ class Cheatsheet:
 
     def __str__(self):
         return f'Cheatsheet: "{self.description}"'
-
-    @staticmethod
-    def cheatsheet_names(setting: Setting) -> List[str]:
-        """Return a list of cheatsheet names from the Setting's cheatsheet directory.
-
-        Parameters
-        ----------
-        setting: Setting
-            The Setting object; this is used to find the setting root and
-            subdirectories.
-
-        Returns
-        -------
-        list of str
-            A list of cheatsheet names.
-        """
-        return [
-            fname.split(".")[0]
-            for fname in listdir(setting.cheatsheets_dir)
-            if (
-                isfile(join(setting.cheatsheets_dir, fname)) and fname.endswith(".yaml")
-            )
-        ]
 
     @classmethod
     def from_name(cls, cheatsheet_name: str, setting: Setting):
@@ -128,7 +103,9 @@ class Cheatsheet:
         # Make a list of all of the cheatsheet names that start with cheatsheet_name
         possible_cheatsheet_names = [
             name
-            for name in cls.cheatsheet_names(setting)
+            for name in setting.filenames_of_type_in_dir(
+                "yaml", setting.cheatsheets_dir
+            )
             if name.startswith(cheatsheet_name)
         ]
         # If the list was empty, cheatsheet_name didn't match any real cheatsheets,
