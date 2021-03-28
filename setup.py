@@ -2,7 +2,7 @@ import setuptools
 
 setuptools.setup(
     name="fourhills",
-    version="0.0.1",
+    version="0.1.0",
     author="Simeon Jenkins",
     author_email="55206+smuj@users.noreply.github.com",
     description="A package for managing D&D campaigns",
