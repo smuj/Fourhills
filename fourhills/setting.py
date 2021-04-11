@@ -1,6 +1,43 @@
+from collections.abc import Mapping
 from pathlib import Path
-from typing import Optional, List
+from typing import Optional, List, Callable, Any
 from fourhills.exceptions import FourhillsSettingStructureError
+
+
+class DirectoryDict(Mapping):
+    """Makes a directory of files look like an immutable dict of a type of class."""
+
+    def __init__(
+        self, directory: Path, extension: str, item_factory: Callable[[Path], Any]
+    ):
+        """Initialise the object.
+
+        Parameters
+        ----------
+        directory: Path
+            The directory to search
+        extension: str
+            The file extension, excluding the dot
+        item_factory: Callable
+            Callable that returns an object of the desired type when passed a single
+            argument: a file path (pathlib.Path) that contains the object definition
+        """
+        # Create a dictionary mapping names (excluding extension) to their full path
+        self._valid_names_paths = {
+            filepath.stem: filepath
+            for filepath in directory.glob(f"*.{extension}")
+            if filepath.is_file()
+        }
+        self._item_factory = item_factory
+
+    def __getitem__(self, key):
+        return self._item_factory(self._valid_names_paths[key])
+
+    def __iter__(self):
+        return iter(self._valid_names_paths)
+
+    def __len__(self):
+        return len(self._valid_names_paths)
 
 
 class Setting:
