@@ -1,5 +1,3 @@
-from os import listdir
-from os.path import isfile, join
 from pathlib import Path
 from typing import Optional, List
 from fourhills.exceptions import FourhillsSettingStructureError
@@ -73,14 +71,14 @@ class Setting:
         return self.root / self.DIRNAMES["cheatsheets"]
 
     @staticmethod
-    def filenames_of_type_in_dir(extension: str, directory: str) -> List[str]:
+    def filenames_of_type_in_dir(extension: str, directory: Path) -> List[str]:
         """Return a list of filenames from `directory` with extension `extension`.
 
         Parameters
         ----------
         extension: str
             The file extension, excluding the dot
-        directory: str
+        directory: Path
             The directory to search
 
 
@@ -90,7 +88,7 @@ class Setting:
             A list of valid filenames, excluding the extension.
         """
         return [
-            fname.rpartition(".")[0]
-            for fname in listdir(directory)
-            if (isfile(join(directory, fname)) and fname.endswith(f".{extension}"))
+            filepath.stem
+            for filepath in directory.glob(f"*.{extension}")
+            if filepath.is_file()
         ]
