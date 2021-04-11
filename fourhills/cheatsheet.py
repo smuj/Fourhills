@@ -124,3 +124,18 @@ class Cheatsheet:
                 "More than one cheatsheet exists with a name starting with "
                 f"{cheatsheet_name}"
             )
+
+    @staticmethod
+    def cheatsheet_names(setting: Setting) -> List[str]:
+        """Return a list of cheatsheet names from the Setting's cheatsheet directory.
+        Parameters
+        ----------
+        setting: Setting
+            The Setting object; this is used to find the setting root and
+            subdirectories.
+        Returns
+        -------
+        list of str
+            A list of cheatsheet names.
+        """
+        return setting.filenames_of_type_in_dir("yaml", setting.cheatsheets_dir)
