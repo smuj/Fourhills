@@ -1,9 +1,8 @@
-import sys
 import math
 import yaml
+from pathlib import Path
 from dataclasses import dataclass
 from typing import Optional, Dict, List
-from fourhills import Setting
 from fourhills.text_utils import (
     format_indented_paragraph,
     format_list,
@@ -314,51 +313,18 @@ class StatBlock:
         return lines
 
     @classmethod
-    def from_file(cls, filename: str):
+    def from_file(cls, filepath: Path):
         """Create a StatBlock from a YAML file.
 
         Parameters
         ----------
-        filename: str
+        filename: Path
             Path to the YAML file
         """
-        with open(filename) as f:
+        with open(filepath) as f:
             try:
                 stat_dict = yaml.safe_load(f)
             except yaml.YAMLError as exc:
-                raise FourhillsFileLoadError(f"Error loading from {filename}.") from exc
+                raise FourhillsFileLoadError(f"Error loading from {filepath}.") from exc
 
             return cls(**stat_dict)
-
-    @classmethod
-    def from_name(cls, name: str, setting: Setting):
-        """Create a StatBlock by looking up a monster name in the setting.
-
-        Parameters
-        ----------
-        name: str
-            The name of the monster stat block. Must exactly match a filename in
-            the setting's `monsters` folder, excluding the extension.
-        setting: Setting
-            The Setting object; this is used to find the setting root and
-            subdirectories.
-        """
-        # Suspected path of the stat config file
-        stat_file = setting.monsters_dir / (name + ".yaml")
-        if not stat_file.is_file():
-            raise FourhillsFileNameError(
-                f"Stat file {stat_file} does not exist."
-            )
-        return cls.from_file(str(stat_file))
-
-
-def example():
-    if len(sys.argv) > 1:
-        s = StatBlock.from_file(sys.argv[1])
-    else:
-        s = StatBlock.from_file("ExampleWorld/Monsters/example_monster.yaml")
-    print(s.formatted_string(quantity=4))
-
-
-if __name__ == "__main__":
-    example()

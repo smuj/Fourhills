@@ -1,5 +1,5 @@
 import click
-from fourhills import Scene, Setting, Cheatsheet
+from fourhills import Scene, Setting
 from fourhills.text_utils import display_panes
 from fourhills.exceptions import FourhillsSettingStructureError, FourhillsFileNameError
 
@@ -75,7 +75,7 @@ def list_cheatsheets(ctx, param, value):
     if not value or ctx.resilient_parsing:
         return
     setting = get_setting(ctx)
-    click.echo("  ".join(Cheatsheet.cheatsheet_names(setting)))
+    click.echo("  ".join(setting.cheatsheets.keys()))
     ctx.exit()
 
 
@@ -100,7 +100,7 @@ def cheatsheet(ctx, cheatsheet_name):
     setting = get_setting(ctx)
 
     try:
-        cheatsheet = Cheatsheet.from_name_or_prefix(cheatsheet_name, setting)
+        cheatsheet = setting.cheatsheets.from_prefix(cheatsheet_name)
     except FourhillsFileNameError as e:
         ctx.fail(str(e))
 

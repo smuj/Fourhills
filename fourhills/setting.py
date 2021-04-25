@@ -1,6 +1,9 @@
 from collections.abc import Mapping
 from pathlib import Path
-from typing import Optional, List, Callable, Any
+from typing import Optional, Callable, Any
+from fourhills.stats import StatBlock
+from fourhills.npc import Npc
+from fourhills.cheatsheet import Cheatsheet
 from fourhills.exceptions import FourhillsSettingStructureError
 
 
@@ -39,6 +42,26 @@ class DirectoryDict(Mapping):
     def __len__(self):
         return len(self._valid_names_paths)
 
+    def from_prefix(self, prefix):
+        """Return an item from a prefix of the key (or the full key).
+        Parameters
+        ----------
+        prefix: str
+            A prefix of the name that is unique in the directory.
+        """
+        possible_keys = [key for key in self.keys() if key.startswith(prefix)]
+        # If the list was empty, the prefix didn't match any real keys
+        if len(possible_keys) == 0:
+            raise ValueError(prefix)
+        # If there was exactly one match, return the value
+        elif len(possible_keys) == 1:
+            return self[possible_keys[0]]
+        # If there was more than one match, the prefix wasn't unique
+        else:
+            # This should probably be a setting structure error, since it's not a user
+            # error
+            raise ValueError(prefix)
+
 
 class Setting:
     """Represents the campaign setting directory tree."""
@@ -55,6 +78,29 @@ class Setting:
         self.root = self.find_root()
         self.pane_width = 56
         self.panes = 2
+        self._monsters = DirectoryDict(
+            self.root / self.DIRNAMES["monsters"], "yaml", StatBlock.from_file
+        )
+        # The Npc from_file() method needs a setting to be passed in (so it can
+        # look up stats in the setting if necessary)
+        self._npcs = DirectoryDict(
+            self.root / self.DIRNAMES["npcs"], "yaml", lambda f: Npc.from_file(f, self)
+        )
+        self._cheatsheets = DirectoryDict(
+            self.root / self.DIRNAMES["cheatsheets"], "yaml", Cheatsheet.from_file
+        )
+
+    @property
+    def monsters(self):
+        return self._monsters
+
+    @property
+    def npcs(self):
+        return self._npcs
+
+    @property
+    def cheatsheets(self):
+        return self._cheatsheets
 
     @staticmethod
     def find_root() -> Optional[Path]:
@@ -90,42 +136,3 @@ class Setting:
             current_dir = current_dir.parent
         # If the root directory wasn't found, raise an exception
         raise FourhillsSettingStructureError("No valid root directory was found.")
-
-    @property
-    def world_dir(self):
-        return self.root / self.DIRNAMES["world"]
-
-    @property
-    def monsters_dir(self):
-        return self.root / self.DIRNAMES["monsters"]
-
-    @property
-    def npcs_dir(self):
-        return self.root / self.DIRNAMES["npcs"]
-
-    @property
-    def cheatsheets_dir(self):
-        return self.root / self.DIRNAMES["cheatsheets"]
-
-    @staticmethod
-    def filenames_of_type_in_dir(extension: str, directory: Path) -> List[str]:
-        """Return a list of filenames from `directory` with extension `extension`.
-
-        Parameters
-        ----------
-        extension: str
-            The file extension, excluding the dot
-        directory: Path
-            The directory to search
-
-
-        Returns
-        -------
-        list of str
-            A list of valid filenames, excluding the extension.
-        """
-        return [
-            filepath.stem
-            for filepath in directory.glob(f"*.{extension}")
-            if filepath.is_file()
-        ]

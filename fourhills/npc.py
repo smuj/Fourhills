@@ -1,7 +1,7 @@
 import yaml
+from pathlib import Path
 from dataclasses import dataclass
 from typing import Optional, List, Dict
-from fourhills import Setting, StatBlock
 from fourhills.exceptions import FourhillsFileLoadError, FourhillsFileNameError
 from fourhills.text_utils import wrap_lines_paragraph, title
 
@@ -96,30 +96,25 @@ class Npc:
         return wrap_lines_paragraph(lines, line_width)
 
     @classmethod
-    def from_name(cls, name: str, setting: Setting):
-        """Create an Npc by looking it up in the setting.
+    def from_file(cls, filepath: Path, setting):
+        """Create a Npc from a YAML file.
 
         Parameters
         ----------
-        name: str
-            The name of the NPC. Must exactly match a filename in the setting's
-            `npcs` folder, excluding the extension.
+        filename: Path
+            Path to the YAML file
         setting: Setting
-            The Setting object; this is used to find the setting root and
-            subdirectories.
+            The Setting object; this is used to find any stats as defined by the
+            stats_base key
         """
-        # Suspected path of the NPC file
-        npc_file = setting.npcs_dir / (name + ".yaml")
-        if not npc_file.is_file():
-            raise FourhillsFileNameError(f"NPC file {npc_file} does not exist.")
-        with open(npc_file) as f:
+        with open(filepath) as f:
             try:
                 npc_dict = yaml.safe_load(f)
             except yaml.YAMLError as exc:
-                raise FourhillsFileLoadError(f"Error loading from {npc_file}.") from exc
+                raise FourhillsFileLoadError(f"Error loading from {filepath}.") from exc
 
             if "stats_base" in npc_dict:
-                stats = StatBlock.from_name(npc_dict["stats_base"], setting)
+                stats = setting.monsters[npc_dict["stats_base"]]
             else:
                 stats = None
 

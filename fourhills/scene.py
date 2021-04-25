@@ -1,7 +1,7 @@
 import re
 import yaml
 from typing import List, Tuple, Optional
-from fourhills import Setting, StatBlock, Npc
+from fourhills import Setting
 from fourhills.exceptions import FourhillsFileLoadError
 from fourhills.text_utils import display_panes, title
 
@@ -83,14 +83,14 @@ class Scene:
         panes = list()
 
         for monster_name, quantity in self.monster_names_quantities:
-            monster = StatBlock.from_name(monster_name, self.setting)
+            monster = self.setting.monsters[monster_name]
             panes.append(
                 monster.summary_info(self.setting.pane_width, quantity)
                 + monster.battle_info(self.setting.pane_width)
             )
 
         for npc_name in self.npc_names:
-            npc = Npc.from_name(npc_name, self.setting)
+            npc = self.setting.npcs[npc_name]
             panes.append(
                 npc.summary_info(self.setting.pane_width)
                 + npc.battle_info(self.setting.pane_width)
@@ -103,7 +103,7 @@ class Scene:
         panes = list()
 
         for npc_name in self.npc_names:
-            npc = Npc.from_name(npc_name, self.setting)
+            npc = self.setting.npcs[npc_name]
             panes.append(
                 npc.summary_info(self.setting.pane_width)
                 + npc.character_info(self.setting.pane_width)
@@ -118,7 +118,7 @@ class Scene:
         # List of all of the monsters at the location, and the quantities of each
         monsters_quantities = (
             [
-                (StatBlock.from_name(monster_name, self.setting), quantity)
+                (self.setting.monsters[monster_name], quantity)
                 for monster_name, quantity in self.monster_names_quantities
             ]
             if self.monster_names_quantities
@@ -127,7 +127,7 @@ class Scene:
 
         # List of all of the NPCs at the location
         npcs = (
-            [Npc.from_name(npc_name, self.setting) for npc_name in self.npc_names]
+            [self.setting.npcs[npc_name] for npc_name in self.npc_names]
             if self.npc_names
             else []
         )
