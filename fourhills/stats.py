@@ -9,12 +9,18 @@ from fourhills.text_utils import (
     centre_pad,
     title,
 )
-from fourhills.exceptions import FhParseError
+from fourhills.exceptions import FhParseError, FhConfigError
 
 
 @dataclass
 class StatBlock:
     """The stat block for a monster or character."""
+
+    # Each formatted ability stat needs 2 characters for the score, 3 for the modifier
+    # (including sign), 2 for the brackets around the modifier, and 2 for the minimum
+    # number of spaces on either side. There are 6 ability stats, so if each needs 9
+    # characters in total, there must be an allowed width of at least 56.
+    MINIMUM_TERMINAL_WIDTH = 56
 
     name: str
     size: str
@@ -158,16 +164,17 @@ class StatBlock:
         -------
         list of str
             A representation of the stat block as a list of lines.
+
+        Raises
+        ------
+        FhConfigError
+            If there isn't enough room to display the info.
         """
 
-        # Each formatted ability stat needs 2 characters for the score, 3 for the
-        # modifier (including sign), 2 for the brackets around the modifier, and
-        # 2 for the minimum number of spaces on either side. There are 6 ability
-        # stats, so if each needs 9 characters in total, there must be an allowed
-        # width of at least 56.
-        if line_width < 56:
-            raise ValueError(
-                "Width must be at least 56 for there to be room for all scores."
+        if line_width < self.MINIMUM_TERMINAL_WIDTH:
+            raise FhConfigError(
+                f"Pane width must be at least {self.MINIMUM_TERMINAL_WIDTH} for there "
+                "to be room for all scores."
             )
 
         # List to hold the lines of the output.
