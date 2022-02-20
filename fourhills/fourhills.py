@@ -1,7 +1,8 @@
+from multiprocessing.sharedctypes import Value
 import click
 from fourhills import Scene, Setting
 from fourhills.text_utils import display_panes
-from fourhills.exceptions import FourhillsSettingStructureError, FourhillsFileNameError
+from fourhills.exceptions import FhAmbiguousReferenceError, FhSettingStructureError
 
 SCENE_FILENAME = "scene.yaml"
 
@@ -31,7 +32,7 @@ class AliasedGroup(click.Group):
 def get_setting(click_ctx):
     try:
         return Setting()
-    except FourhillsSettingStructureError as e:
+    except FhSettingStructureError as e:
         click_ctx.fail(
             f"Current directory does not appear to part of a valid setting: {str(e)}"
         )
@@ -101,7 +102,9 @@ def cheatsheet(ctx, cheatsheet_name):
 
     try:
         cheatsheet = setting.cheatsheets.from_prefix(cheatsheet_name)
-    except FourhillsFileNameError as e:
+    except ValueError:
+        ctx.fail(f'Unknown cheatsheet "{cheatsheet_name}"')
+    except FhAmbiguousReferenceError as e:
         ctx.fail(str(e))
 
     panes = [section.lines(setting.pane_width) for section in cheatsheet.sections]

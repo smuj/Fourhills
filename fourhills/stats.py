@@ -9,11 +9,7 @@ from fourhills.text_utils import (
     centre_pad,
     title,
 )
-from fourhills.exceptions import (
-    FourhillsError,
-    FourhillsFileLoadError,
-    FourhillsFileNameError,
-)
+from fourhills.exceptions import FhParseError
 
 
 @dataclass
@@ -56,6 +52,11 @@ class StatBlock:
         -------
         int
             The number of XP.
+
+        Raises
+        ------
+        FhParseError
+            If the challenge rating is invalid.
         """
         xp_table = {
             0: 0,
@@ -96,10 +97,10 @@ class StatBlock:
         try:
             return xp_table[self.challenge]
         except KeyError:
-            raise FourhillsError(
-                f"StatBlock '{self.name}' has invalid challenge rating "
-                f"{self.challenge}. Challenge rating must be either 0.125, 0.25 or "
-                f"0.5, or an integer between 0 and 30."
+            raise FhParseError(
+                f'StatBlock "{self.name}" has invalid challenge rating '
+                f'"{self.challenge}". Challenge rating must be either 0.125, 0.25 or '
+                "0.5, or an integer between 0 and 30."
             )
 
     @staticmethod
@@ -320,11 +321,18 @@ class StatBlock:
         ----------
         filename: Path
             Path to the YAML file
+
+        Raises
+        ------
+        FhParseError
+            If there is an error parsing the file.
         """
         with open(filepath) as f:
             try:
                 stat_dict = yaml.safe_load(f)
             except yaml.YAMLError as exc:
-                raise FourhillsFileLoadError(f"Error loading from {filepath}.") from exc
+                raise FhParseError(
+                    f'Error parsing YAML for stat block "{filepath.stem}": {str(exc)}'
+                )
 
             return cls(**stat_dict)

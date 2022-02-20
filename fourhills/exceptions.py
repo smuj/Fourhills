@@ -1,15 +1,18 @@
 
-class FourhillsError(Exception):
+class FhError(Exception):
     pass
 
 
-class FourhillsSettingStructureError(FourhillsError):
+class FhParseError(FhError):
+    """Error when parsing a data file."""
     pass
 
 
-class FourhillsFileNameError(FourhillsError):
+class FhAmbiguousReferenceError(FhParseError):
+    """A referenced entity can't be uniquely determined."""
     pass
 
 
-class FourhillsFileLoadError(FourhillsError):
+class FhSettingStructureError(FhError):
+    """The setting directory structure is not valid."""
     pass

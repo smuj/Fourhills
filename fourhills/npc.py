@@ -2,7 +2,7 @@ import yaml
 from pathlib import Path
 from dataclasses import dataclass
 from typing import Optional, List, Dict
-from fourhills.exceptions import FourhillsFileLoadError, FourhillsFileNameError
+from fourhills.exceptions import FhParseError
 from fourhills.text_utils import wrap_lines_paragraph, title
 
 
@@ -106,12 +106,19 @@ class Npc:
         setting: Setting
             The Setting object; this is used to find any stats as defined by the
             stats_base key
+
+        Raises
+        ------
+        FhParseError
+            If there is an error parsing the file.
         """
         with open(filepath) as f:
             try:
                 npc_dict = yaml.safe_load(f)
             except yaml.YAMLError as exc:
-                raise FourhillsFileLoadError(f"Error loading from {filepath}.") from exc
+                raise FhParseError(
+                    f'Error parsing YAML in NPC "{filepath.stem}": {str(exc)}'
+                )
 
             if "stats_base" in npc_dict:
                 stats = setting.monsters[npc_dict["stats_base"]]

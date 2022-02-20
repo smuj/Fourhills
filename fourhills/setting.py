@@ -4,7 +4,7 @@ from typing import Optional, Callable, Any
 from fourhills.stats import StatBlock
 from fourhills.npc import Npc
 from fourhills.cheatsheet import Cheatsheet
-from fourhills.exceptions import FourhillsSettingStructureError
+from fourhills.exceptions import FhSettingStructureError, FhAmbiguousReferenceError
 
 
 class DirectoryDict(Mapping):
@@ -44,10 +44,18 @@ class DirectoryDict(Mapping):
 
     def from_prefix(self, prefix):
         """Return an item from a prefix of the key (or the full key).
+
         Parameters
         ----------
         prefix: str
             A prefix of the name that is unique in the directory.
+
+        Raises
+        ------
+        ValueError
+            If the prefix was not valid, i.e. could not be matched to a file.
+        FhAmbiguousReferenceError
+            If the prefix was ambiguous, i.e. there were multiple files it could match.
         """
         possible_keys = [key for key in self.keys() if key.startswith(prefix)]
         # If the list was empty, the prefix didn't match any real keys
@@ -58,9 +66,9 @@ class DirectoryDict(Mapping):
             return self[possible_keys[0]]
         # If there was more than one match, the prefix wasn't unique
         else:
-            # This should probably be a setting structure error, since it's not a user
-            # error
-            raise ValueError(prefix)
+            raise FhAmbiguousReferenceError(
+                f'Multiple items match prefix "{prefix}": {", ".join(possible_keys)}'
+            )
 
 
 class Setting:
@@ -117,7 +125,7 @@ class Setting:
 
         Raises
         ------
-        FourhillsSettingStructureError
+        FhSettingStructureError
             If the current directory is not part of a valid setting.
         """
         # Get the current working directory and resolve any symlinks etc.
@@ -129,10 +137,10 @@ class Setting:
                 # Make sure the require directories are there
                 for directory_name in Setting.DIRNAMES.values():
                     if not (current_dir / directory_name).is_dir():
-                        raise FourhillsSettingStructureError(
+                        raise FhSettingStructureError(
                             f"Setting root does not contain {directory_name} directory."
                         )
                 return current_dir
             current_dir = current_dir.parent
         # If the root directory wasn't found, raise an exception
-        raise FourhillsSettingStructureError("No valid root directory was found.")
+        raise FhSettingStructureError("No valid root directory was found.")

@@ -2,7 +2,7 @@ import yaml
 from pathlib import Path
 from dataclasses import dataclass
 from typing import List
-from fourhills.exceptions import FourhillsFileLoadError, FourhillsFileNameError
+from fourhills.exceptions import FhParseError
 from fourhills.text_utils import wrap_lines_paragraph, title
 
 
@@ -49,26 +49,31 @@ class Cheatsheet:
         ----------
         filename: Path
             Path to the YAML file
+
+        Raises
+        ------
+        FhParseError
+            If there is an error parsing the file.
         """
         with open(filepath) as f:
             try:
                 cheatsheet_dict = yaml.safe_load(f)
             except yaml.YAMLError as exc:
-                raise FourhillsFileLoadError(
-                    f"Error loading from {filepath}."
-                ) from exc
+                raise FhParseError(
+                    f'Error parsing YAML in cheatsheet "{filepath.stem}": {str(exc)}'
+                )
 
             try:
                 description = cheatsheet_dict["description"]
             except KeyError:
-                raise FourhillsFileLoadError(
-                    f"Error loading from {filepath}: description not included."
+                raise FhParseError(
+                    f'Missing "description" in cheatsheet "{filepath.stem}".'
                 )
             try:
                 sections_list = cheatsheet_dict["sections"]
             except KeyError:
-                raise FourhillsFileLoadError(
-                    f"Error loading from {filepath}: sections not included."
+                raise FhParseError(
+                    f'Missing "sections" in cheatsheet "{filepath.stem}".'
                 )
 
             sections = [
