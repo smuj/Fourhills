@@ -1,8 +1,8 @@
 import re
 import yaml
 from typing import List, Tuple, Optional
-from fourhills import Setting, StatBlock, Npc
-from fourhills.exceptions import FourhillsFileLoadError
+from fourhills import Setting
+from fourhills.exceptions import FhParseError
 from fourhills.text_utils import display_panes, title
 
 
@@ -40,12 +40,17 @@ class Scene:
             Filename of the YAML file to load scene info from.
         setting : Setting or None
             The setting the scene belongs to. If None, one will be generated.
+
+        Raises
+        ------
+        FhParseError
+            If there is an error parsing the file.
         """
         with open(filename) as f:
             try:
                 scene_info = yaml.safe_load(f)
             except yaml.YAMLError as exc:
-                raise FourhillsFileLoadError(f"Error loading from {filename}.") from exc
+                raise FhParseError(f"Error parsing YAML for scene: {str(exc)}")
 
             # Stores the list of monster names and numbers
             monster_info = []
@@ -56,8 +61,9 @@ class Scene:
                     # See if it matches the expected format, extracting name and number
                     match = re.match(r"^(\w*)(?: ?x?(\d+))?$", monster_name_number)
                     if not match:
-                        raise FourhillsFileLoadError(
-                            "Error parsing monster in scene file"
+                        raise FhParseError(
+                            f'Error parsing "{monster_name_number}": could not split '
+                            "into a monster name and (optional) quantity."
                         )
                     # Get the name of the monster and how many there are. If there
                     # wasn't a number, assume 1 monster.
@@ -67,8 +73,9 @@ class Scene:
                     try:
                         number = int(number)
                     except ValueError as exc:
-                        raise FourhillsFileLoadError(
-                            f"Error parsing number for monster {name}"
+                        raise FhParseError(
+                            f'Error parsing quantity "{number}" of monster "{name}" '
+                            'into an integer.'
                         ) from exc
                     # Add to the list
                     monster_info.append((name, number))
@@ -83,14 +90,14 @@ class Scene:
         panes = list()
 
         for monster_name, quantity in self.monster_names_quantities:
-            monster = StatBlock.from_name(monster_name, self.setting)
+            monster = self.setting.monsters[monster_name]
             panes.append(
                 monster.summary_info(self.setting.pane_width, quantity)
                 + monster.battle_info(self.setting.pane_width)
             )
 
         for npc_name in self.npc_names:
-            npc = Npc.from_name(npc_name, self.setting)
+            npc = self.setting.npcs[npc_name]
             panes.append(
                 npc.summary_info(self.setting.pane_width)
                 + npc.battle_info(self.setting.pane_width)
@@ -103,7 +110,7 @@ class Scene:
         panes = list()
 
         for npc_name in self.npc_names:
-            npc = Npc.from_name(npc_name, self.setting)
+            npc = self.setting.npcs[npc_name]
             panes.append(
                 npc.summary_info(self.setting.pane_width)
                 + npc.character_info(self.setting.pane_width)
@@ -118,7 +125,7 @@ class Scene:
         # List of all of the monsters at the location, and the quantities of each
         monsters_quantities = (
             [
-                (StatBlock.from_name(monster_name, self.setting), quantity)
+                (self.setting.monsters[monster_name], quantity)
                 for monster_name, quantity in self.monster_names_quantities
             ]
             if self.monster_names_quantities
@@ -127,7 +134,7 @@ class Scene:
 
         # List of all of the NPCs at the location
         npcs = (
-            [Npc.from_name(npc_name, self.setting) for npc_name in self.npc_names]
+            [self.setting.npcs[npc_name] for npc_name in self.npc_names]
             if self.npc_names
             else []
         )

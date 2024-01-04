@@ -1,25 +1,26 @@
-import sys
 import math
 import yaml
+from pathlib import Path
 from dataclasses import dataclass
 from typing import Optional, Dict, List
-from fourhills import Setting
 from fourhills.text_utils import (
     format_indented_paragraph,
     format_list,
     centre_pad,
     title,
 )
-from fourhills.exceptions import (
-    FourhillsError,
-    FourhillsFileLoadError,
-    FourhillsFileNameError,
-)
+from fourhills.exceptions import FhParseError, FhConfigError
 
 
 @dataclass
 class StatBlock:
     """The stat block for a monster or character."""
+
+    # Each formatted ability stat needs 2 characters for the score, 3 for the modifier
+    # (including sign), 2 for the brackets around the modifier, and 2 for the minimum
+    # number of spaces on either side. There are 6 ability stats, so if each needs 9
+    # characters in total, there must be an allowed width of at least 56.
+    MINIMUM_TERMINAL_WIDTH = 56
 
     name: str
     size: str
@@ -57,6 +58,11 @@ class StatBlock:
         -------
         int
             The number of XP.
+
+        Raises
+        ------
+        FhParseError
+            If the challenge rating is invalid.
         """
         xp_table = {
             0: 0,
@@ -97,10 +103,10 @@ class StatBlock:
         try:
             return xp_table[self.challenge]
         except KeyError:
-            raise FourhillsError(
-                f"StatBlock '{self.name}' has invalid challenge rating "
-                f"{self.challenge}. Challenge rating must be either 0.125, 0.25 or "
-                f"0.5, or an integer between 0 and 30."
+            raise FhParseError(
+                f'StatBlock "{self.name}" has invalid challenge rating '
+                f'"{self.challenge}". Challenge rating must be either 0.125, 0.25 or '
+                "0.5, or an integer between 0 and 30."
             )
 
     @staticmethod
@@ -158,16 +164,17 @@ class StatBlock:
         -------
         list of str
             A representation of the stat block as a list of lines.
+
+        Raises
+        ------
+        FhConfigError
+            If there isn't enough room to display the info.
         """
 
-        # Each formatted ability stat needs 2 characters for the score, 3 for the
-        # modifier (including sign), 2 for the brackets around the modifier, and
-        # 2 for the minimum number of spaces on either side. There are 6 ability
-        # stats, so if each needs 9 characters in total, there must be an allowed
-        # width of at least 56.
-        if line_width < 56:
-            raise ValueError(
-                "Width must be at least 56 for there to be room for all scores."
+        if line_width < self.MINIMUM_TERMINAL_WIDTH:
+            raise FhConfigError(
+                f"Pane width must be at least {self.MINIMUM_TERMINAL_WIDTH} for there "
+                "to be room for all scores."
             )
 
         # List to hold the lines of the output.
@@ -314,51 +321,25 @@ class StatBlock:
         return lines
 
     @classmethod
-    def from_file(cls, filename: str):
+    def from_file(cls, filepath: Path):
         """Create a StatBlock from a YAML file.
 
         Parameters
         ----------
-        filename: str
+        filename: Path
             Path to the YAML file
+
+        Raises
+        ------
+        FhParseError
+            If there is an error parsing the file.
         """
-        with open(filename) as f:
+        with open(filepath) as f:
             try:
                 stat_dict = yaml.safe_load(f)
             except yaml.YAMLError as exc:
-                raise FourhillsFileLoadError(f"Error loading from {filename}.") from exc
+                raise FhParseError(
+                    f'Error parsing YAML for stat block "{filepath.stem}": {str(exc)}'
+                )
 
             return cls(**stat_dict)
-
-    @classmethod
-    def from_name(cls, name: str, setting: Setting):
-        """Create a StatBlock by looking up a monster name in the setting.
-
-        Parameters
-        ----------
-        name: str
-            The name of the monster stat block. Must exactly match a filename in
-            the setting's `monsters` folder, excluding the extension.
-        setting: Setting
-            The Setting object; this is used to find the setting root and
-            subdirectories.
-        """
-        # Suspected path of the stat config file
-        stat_file = setting.monsters_dir / (name + ".yaml")
-        if not stat_file.is_file():
-            raise FourhillsFileNameError(
-                f"Stat file {stat_file} does not exist."
-            )
-        return cls.from_file(str(stat_file))
-
-
-def example():
-    if len(sys.argv) > 1:
-        s = StatBlock.from_file(sys.argv[1])
-    else:
-        s = StatBlock.from_file("ExampleWorld/Monsters/example_monster.yaml")
-    print(s.formatted_string(quantity=4))
-
-
-if __name__ == "__main__":
-    example()
